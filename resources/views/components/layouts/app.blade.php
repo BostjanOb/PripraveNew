@@ -55,9 +55,11 @@
             {{-- Desktop actions --}}
             <div class="hidden items-center gap-2 md:flex">
                 {{-- Dark mode toggle --}}
-                <button
+                <flux:button
+                    variant="ghost"
+                    square
                     @click="isDark = !isDark"
-                    :aria-label="isDark ? 'Preklopi na svetli način' : 'Preklopi na temni način'"
+                    ::aria-label="isDark ? 'Preklopi na svetli način' : 'Preklopi na temni način'"
                     class="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 >
                     <template x-if="isDark">
@@ -66,52 +68,53 @@
                     <template x-if="!isDark">
                         <x-icon-regular.moon class="size-3.5 -rotate-12" />
                     </template>
-                </button>
+                </flux:button>
 
-                <a href="{{ url('/dodajanje') }}" class="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
-                    <x-icon-regular.plus class="size-3.5" />
+                <flux:button as="a" href="{{ url('/dodajanje') }}" 
+                    variant="outline" 
+                    icon="icon-regular.plus"
+                    class="h-9!">
                     Dodaj pripravo
-                </a>
+                </flux:button>
 
                 @auth
-                    <div x-data="{ open: false }" class="relative">
-                        <button
-                            @click="open = !open"
+                    <flux:dropdown position="bottom" align="end">
+                        <flux:button
+                            variant="subtle"
                             class="flex items-center gap-2 rounded-full border border-border bg-background py-1 pl-1 pr-3 transition-colors hover:bg-secondary"
                         >
                             <div class="flex size-7 items-center justify-center rounded-full bg-primary/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-primary">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                                </svg>
+                                <x-icon-regular.user class="size-3.5" />
                             </div>
                             <span class="text-sm font-medium text-foreground">{{ auth()->user()->name }}</span>
-                        </button>
-                        <div
-                            x-show="open"
-                            @click.outside="open = false"
-                            x-transition
-                            class="absolute right-0 top-full z-50 mt-1.5 w-44 rounded-lg border border-border bg-card py-1 shadow-md"
-                        >
-                            <a href="{{ url('/profil') }}" class="block px-3 py-2 text-sm text-foreground hover:bg-secondary">Moj profil</a>
-                            <div class="my-1 border-t border-border"></div>
+                        </flux:button>
+                        <flux:navmenu>
+                            <flux:navmenu.item href="{{ url('/profil') }}" icon="icon-regular.user">
+                                Moj profil
+                            </flux:navmenu.item>
+                            <flux:navmenu.separator />
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
-                                    Odjava
-                                </button>
+                                <flux:navmenu.item as="button" 
+                                    icon="icon-regular.arrow-right-from-bracket"
+                                    type="submit">Odjava</flux:navmenu.item>
                             </form>
-                        </div>
-                    </div>
+                        </flux:navmenu>
+                    </flux:dropdown>
                 @else
-                    <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-                        <x-icon-regular.user class="size-3.5" />
+                    <flux:button as="a" href="{{ route('login') }}" 
+                        variant="primary"
+                        icon="icon-regular.user"
+                        class="h-9!">
                         Prijava
-                    </a>
+                    </flux:button>
                 @endauth
             </div>
 
             {{-- Mobile hamburger --}}
-            <button
+            <flux:button
+                variant="ghost"
+                square
                 @click="mobileOpen = !mobileOpen"
                 aria-label="Preklopi meni"
                 class="flex size-9 items-center justify-center rounded-md text-muted-foreground md:hidden"
@@ -128,7 +131,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </template>
-            </button>
+            </flux:button>
         </div>
 
         {{-- Mobile menu --}}
@@ -142,7 +145,8 @@
                 </a>
             </nav>
             <div class="mt-3 flex flex-col gap-2">
-                <button
+                <flux:button
+                    variant="ghost"
                     @click="isDark = !isDark"
                     class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
                 >
@@ -157,14 +161,14 @@
                         </svg>
                     </template>
                     <span x-text="isDark ? 'Svetli način' : 'Temni način'"></span>
-                </button>
+                </flux:button>
 
-                <a href="{{ url('/dodajanje') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+                <flux:button as="a" href="{{ url('/dodajanje') }}" variant="outline" size="sm" class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 !py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                     Dodaj pripravo
-                </a>
+                </flux:button>
 
                 @auth
                     <a href="{{ url('/profil') }}" class="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 transition-colors hover:bg-secondary">
@@ -177,17 +181,17 @@
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full rounded-md px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground">
+                        <flux:button type="submit" variant="ghost" align="start" class="w-full rounded-md px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground">
                             Odjava
-                        </button>
+                        </flux:button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+                    <flux:button as="a" href="{{ route('login') }}" variant="primary" size="sm" class="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-primary px-3 !py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                         </svg>
                         Prijava
-                    </a>
+                    </flux:button>
                 @endauth
             </div>
         </div>

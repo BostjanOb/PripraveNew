@@ -108,6 +108,12 @@
     --color-accent-foreground: hsl(var(--primary-foreground));
 }
 
+[data-flux-button].flux-size-md {
+    height: auto;
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
 /* Remove native browser outline from inputs inside Flux wrappers — the wrapper handles the focus ring */
 [data-flux-input] input:focus-visible,
 [data-flux-input] textarea:focus-visible {
