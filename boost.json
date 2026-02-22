@@ -17,6 +17,7 @@
     ],
     "sail": false,
     "skills": [
+        "fluxui-development",
         "pest-testing",
         "tailwindcss-development",
         "developing-with-fortify"

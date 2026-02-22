@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -99,6 +100,31 @@
     --preschool: 280 55% 65%;
     --elementary: 152 50% 48%;
     --highschool: 25 85% 60%;
+}
+
+/* Flux overrides: primary button uses app's green, focus ring is green */
+[data-flux-button] {
+    --color-accent: hsl(var(--primary));
+    --color-accent-foreground: hsl(var(--primary-foreground));
+}
+
+/* Remove native browser outline from inputs inside Flux wrappers — the wrapper handles the focus ring */
+[data-flux-input] input:focus-visible,
+[data-flux-input] textarea:focus-visible {
+    outline: none;
+}
+
+/* Draw a green focus ring on the Flux input wrapper when the inner control is focused */
+[data-flux-input]:has(input:focus-visible),
+[data-flux-input]:has(textarea:focus-visible) {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 1px;
+    border-radius: var(--radius-md);
+}
+
+/* Override Flux's wrapper focus ring color to app's primary green */
+.has-focus-visible\:outline-default:has(*:focus-visible) {
+    outline-color: hsl(var(--primary));
 }
 
 @layer base {

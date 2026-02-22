@@ -20,7 +20,7 @@ class LegacyMd5UserProvider extends EloquentUserProvider
         if ($this->isLegacyMd5Hash($hashed)) {
             $salt = config('auth.legacy_password_salt', '');
 
-            if (md5($salt . $plain) !== $hashed) {
+            if (md5($salt.$plain) !== $hashed) {
                 return false;
             }
 
@@ -29,7 +29,7 @@ class LegacyMd5UserProvider extends EloquentUserProvider
             return true;
         }
 
-        return $this->hasher->check($plain, $hashed);
+        return parent::validateCredentials($user, $credentials);
     }
 
     private function isLegacyMd5Hash(string $hash): bool

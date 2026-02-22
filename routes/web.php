@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\ConfirmablePasswordController;
@@ -15,6 +16,15 @@ Route::get('/', function () {
 });
 
 Route::middleware('web')->group(function () {
+    Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
+        ->middleware('guest')
+        ->whereIn('provider', ['google', 'facebook'])
+        ->name('social.redirect');
+    Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
+        ->middleware('guest')
+        ->whereIn('provider', ['google', 'facebook'])
+        ->name('social.callback');
+
     // Login
     Route::get('/prijava', [AuthenticatedSessionController::class, 'create'])
         ->middleware('guest')

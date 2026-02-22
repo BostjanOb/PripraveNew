@@ -34,9 +34,9 @@
                 <p class="text-sm text-muted-foreground">Niste prejeli e-pošte?</p>
                 <form method="POST" action="{{ route('verification.send') }}">
                     @csrf
-                    <button type="submit" class="w-full rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+                    <flux:button type="submit" variant="outline" class="w-full">
                         Ponovno pošlji potrditveni e-mail
-                    </button>
+                    </flux:button>
                 </form>
             </div>
 
