@@ -1,0 +1,24 @@
+{
+    "agents": [
+        "claude_code",
+        "opencode",
+        "gemini",
+        "codex",
+        "junie",
+        "copilot"
+    ],
+    "guidelines": true,
+    "herd_mcp": true,
+    "mcp": true,
+    "nightwatch_mcp": false,
+    "packages": [
+        "filament/filament",
+        "laravel/fortify"
+    ],
+    "sail": false,
+    "skills": [
+        "pest-testing",
+        "tailwindcss-development",
+        "developing-with-fortify"
+    ]
+}
