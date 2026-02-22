@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Pages\IndexController;
 use App\Http\Controllers\Pages\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
@@ -12,9 +13,7 @@ use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', IndexController::class)->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profil', [ProfileController::class, 'index'])->name('profile');

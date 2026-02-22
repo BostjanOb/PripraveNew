@@ -86,8 +86,8 @@
         </div>
     </div>
 
-    <div class="flex @if($showActions) flex-col gap-2 md:items-end @else items-center gap-2 md:justify-end @endif">
-        <div class="flex @if($showActions) flex-wrap items-center gap-2 md:justify-end @else items-center gap-2 @endif">
+    <div class="flex gap-2 @if($showActions) flex-col md:items-end @else items-center md:justify-end @endif">
+        <div class="flex items-center gap-2 @if($showActions) flex-wrap  md:justify-end @endif">
             {{-- School type badge --}}
             <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold {{ $st['badge'] }}">
                 <span class="inline-block size-2 rounded-full {{ $st['dot'] }}"></span>
@@ -111,9 +111,7 @@
             @if(!$showActions)
                 <div class="hidden items-center gap-3 pl-3 text-xs text-muted-foreground md:flex">
                     <span class="flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
+                        <x-icon-regular.download class="size-3" />
                         {{ $document->downloads_count }}
                     </span>
                 </div>

@@ -136,7 +136,7 @@ class MigrateFromOldDatabase extends Command
                 'updated_at' => $now,
             ]);
 
-            $this->categoryMap['2:' . $sub['novaVrsta']] = $id;
+            $this->categoryMap['2:'.$sub['novaVrsta']] = $id;
         }
 
         $this->categoryMap['1:'] = $pripravaId;
@@ -199,6 +199,7 @@ class MigrateFromOldDatabase extends Command
 
             if ($schoolTypeId === null) {
                 $this->warn("Grade {$row->razredId}: unknown solaId {$row->solaId}, skipping.");
+
                 continue;
             }
 
@@ -258,6 +259,7 @@ class MigrateFromOldDatabase extends Command
 
             if ($existing) {
                 $this->subjectMap[$mapKey] = $existing;
+
                 continue;
             }
 
@@ -311,10 +313,10 @@ class MigrateFromOldDatabase extends Command
 
                     $seenEmails[$email] = true;
 
-                    $slug = $row->uporabnikURL !== '' ? (string) $row->uporabnikURL : 'user-' . $row->uporabnikId;
+                    $slug = $row->uporabnikURL !== '' ? (string) $row->uporabnikURL : 'user-'.$row->uporabnikId;
 
                     if (isset($seenSlugs[$slug])) {
-                        $slug = $slug . '-' . $row->uporabnikId;
+                        $slug = $slug.'-'.$row->uporabnikId;
                     }
 
                     $seenSlugs[$slug] = true;
@@ -358,7 +360,7 @@ class MigrateFromOldDatabase extends Command
     {
         $parts = explode('@', $email, 2);
 
-        return $parts[0] . '-' . $id . '@' . ($parts[1] ?? 'placeholder.priprave.net');
+        return $parts[0].'-'.$id.'@'.($parts[1] ?? 'placeholder.priprave.net');
     }
 
     // -------------------------------------------------------------------------
@@ -389,12 +391,13 @@ class MigrateFromOldDatabase extends Command
                     $schoolTypeId = $this->schoolTypeMap[$row->solaId] ?? null;
                     $subjectKey = "{$row->predmetId}:{$row->solaId}";
                     $subjectId = $this->subjectMap[$subjectKey] ?? null;
-                    $categoryKey = $row->vrsta . ':' . ($row->novaVrsta ?? '');
-                    $categoryId = $this->categoryMap[$categoryKey] ?? ($this->categoryMap[$row->vrsta . ':'] ?? null);
+                    $categoryKey = $row->vrsta.':'.($row->novaVrsta ?? '');
+                    $categoryId = $this->categoryMap[$categoryKey] ?? ($this->categoryMap[$row->vrsta.':'] ?? null);
 
                     if ($gradeId === null || $schoolTypeId === null || $subjectId === null || $categoryId === null) {
                         $this->skippedDocumentIds[$row->pripravaId] = true;
                         $skipped++;
+
                         continue;
                     }
 
@@ -436,14 +439,14 @@ class MigrateFromOldDatabase extends Command
     private function makeUniqueSlug(string $slug, int $id, array $usedSlugs): string
     {
         if ($slug === '') {
-            $slug = 'dokument-' . $id;
+            $slug = 'dokument-'.$id;
         }
 
         if (! isset($usedSlugs[$slug])) {
             return $slug;
         }
 
-        return $slug . '-' . $id;
+        return $slug.'-'.$id;
     }
 
     // -------------------------------------------------------------------------
@@ -467,6 +470,7 @@ class MigrateFromOldDatabase extends Command
                 foreach ($rows as $row) {
                     if (isset($this->skippedDocumentIds[$row->pripravaId])) {
                         $skipped++;
+
                         continue;
                     }
 
@@ -476,7 +480,7 @@ class MigrateFromOldDatabase extends Command
                     $inserts[] = [
                         'document_id' => $row->pripravaId,
                         'original_name' => $row->datotekaIme,
-                        'storage_path' => 'datoteka/' . $row->hash,
+                        'storage_path' => 'datoteka/'.$row->hash,
                         'size_bytes' => $row->velikost,
                         'mime_type' => $row->tip,
                         'extension' => $extension,
@@ -515,6 +519,7 @@ class MigrateFromOldDatabase extends Command
                 foreach ($rows as $row) {
                     if (! $row->uporabnikId || isset($this->skippedDocumentIds[$row->pripravaId])) {
                         $skipped++;
+
                         continue;
                     }
 
@@ -558,6 +563,7 @@ class MigrateFromOldDatabase extends Command
                 foreach ($rows as $row) {
                     if (! $row->uporabnikId || isset($this->skippedDocumentIds[$row->pripravaId])) {
                         $skipped++;
+
                         continue;
                     }
 

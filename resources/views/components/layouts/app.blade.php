@@ -1,5 +1,7 @@
-@props(['title' => config('app.name', 'Priprave.net'), 'mainClass' => 'flex flex-1 items-center justify-center px-4 py-12'])
-
+@props([
+    'title' => config('app.name', 'Priprave.net'), 
+    'mainClass' => 'flex-1'
+])
 <!DOCTYPE html>
 <html
     lang="sl"
