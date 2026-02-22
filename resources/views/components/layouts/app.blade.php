@@ -1,4 +1,4 @@
-@props(['title' => config('app.name', 'Priprave.net')])
+@props(['title' => config('app.name', 'Priprave.net'), 'mainClass' => 'flex flex-1 items-center justify-center px-4 py-12'])
 
 <!DOCTYPE html>
 <html
@@ -198,7 +198,7 @@
     </header>
 
     {{-- Main content --}}
-    <main class="flex flex-1 items-center justify-center px-4 py-12">
+    <main class="{{ $mainClass }}">
         {{ $slot }}
     </main>
 

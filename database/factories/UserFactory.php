@@ -23,8 +23,11 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->name();
+
         return [
-            'name' => fake()->name(),
+            'name' => $name,
+            'display_name' => $name,
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
@@ -40,5 +43,17 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /**
+     * Indicate that the user has no password set (social-only account).
+     */
+    public function withoutPassword(): static
+    {
+        return $this->afterCreating(function (\App\Models\User $user) {
+            \Illuminate\Support\Facades\DB::table('users')
+                ->where('id', $user->id)
+                ->update(['password' => '']);
+        });
     }
 }

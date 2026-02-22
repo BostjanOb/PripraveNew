@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Pages\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\ConfirmablePasswordController;
@@ -13,6 +14,11 @@ use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/profil', [ProfileController::class, 'index'])->name('profile');
+    Route::get('/profil/uredi', [ProfileController::class, 'edit'])->name('profile.edit');
 });
 
 Route::middleware('web')->group(function () {
