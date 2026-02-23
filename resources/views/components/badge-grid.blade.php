@@ -1,8 +1,10 @@
 @props([
-    'allBadges',      // array from BadgeRegistry::all()
-    'earnedBadgeIds', // string[]
-    'categories',     // string[] from BadgeRegistry::categories()
-    'categoryLabels', // array<string,string> from BadgeRegistry::categoryLabels()
+    'allBadges' => [],    // array from BadgeRegistry::all() — required in full mode
+    'earnedBadgeIds',     // string[]
+    'categories' => [],   // string[] from BadgeRegistry::categories() — required in full mode
+    'categoryLabels' => [], // array<string,string> — required in full mode
+    'compact' => false,   // compact mode: only earned badges, single flex row, expandable
+    'showAll' => true,    // if false (compact), only show earned badges
 ])
 
 @php
@@ -24,7 +26,47 @@
     ];
 @endphp
 
-<div class="space-y-6">
+@if($compact)
+    {{-- Compact mode: only earned badges, expandable with Alpine --}}
+    @php
+        $earnedBadgeObjects = array_values(array_filter($allBadges, fn($b) => isset($earnedSet[$b['id']])));
+        $visibleCount = 6;
+        $hasMore = count($earnedBadgeObjects) > $visibleCount;
+    @endphp
+    <div x-data="{ expanded: false }">
+        <div class="flex flex-wrap gap-3">
+            @foreach($earnedBadgeObjects as $index => $badge)
+                <div x-show="{{ $index < $visibleCount ? 'true' : 'expanded' }}">
+                    <x-badge-icon :badge="$badge" :earned="true" size="sm" :showLabel="true" />
+                </div>
+            @endforeach
+
+            @if($hasMore)
+                <button
+                    x-show="!expanded"
+                    x-on:click="expanded = true"
+                    class="flex size-10 items-center justify-center rounded-2xl border-2 border-dashed border-muted-foreground/20 text-xs font-bold text-muted-foreground transition-colors hover:border-muted-foreground/40"
+                >
+                    +{{ count($earnedBadgeObjects) - $visibleCount }}
+                </button>
+            @endif
+        </div>
+
+        @if($hasMore)
+            <button
+                x-show="expanded"
+                x-on:click="expanded = false"
+                class="mt-2 flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                </svg>
+                Pokaži manj
+            </button>
+        @endif
+    </div>
+@else
+    <div class="space-y-6">
     {{-- Summary --}}
     <div class="flex items-center gap-2">
         <div class="flex size-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/50">
@@ -67,3 +109,4 @@
         </div>
     @endforeach
 </div>
+@endif

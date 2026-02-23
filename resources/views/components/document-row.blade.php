@@ -37,8 +37,12 @@
     $titleHoverClass = $showActions ? 'hover:text-emerald-700' : 'group-hover:text-teal-700';
 @endphp
 
-<div class="group flex flex-col gap-3 rounded-2xl border border-border bg-background p-4 transition-all {{ $hoverClass }} md:flex-row md:items-center md:justify-between md:gap-4"
+<div class="group relative flex flex-col gap-3 rounded-2xl border border-border bg-background p-4 transition-all {{ $hoverClass }} md:flex-row md:items-center md:justify-between md:gap-4"
      @if(!$showActions) wire:key="doc-{{ $document->id }}" @endif>
+
+    @if(!$showActions)
+        <a href="{{ route('document.show', $document) }}" class="absolute inset-0 rounded-2xl" aria-label="{{ $document->title }}"></a>
+    @endif
 
     <div class="flex items-start gap-3 md:flex-1">
         {{-- Category type badge / icon --}}
@@ -48,15 +52,14 @@
 
         <div class="min-w-0 flex-1">
             @if($showActions)
-                <a href="{{ url('/dokument/' . $document->slug) }}"
+                <a href="{{ route('document.show', $document) }}"
                    class="font-semibold text-foreground transition-colors {{ $titleHoverClass }}">
                     {{ $document->title }}
                 </a>
             @else
-                <a href="{{ url('/dokument/' . $document->slug) }}"
-                   class="font-semibold text-foreground transition-colors {{ $titleHoverClass }}">
+                <span class="font-semibold text-foreground transition-colors {{ $titleHoverClass }}">
                     {{ $document->title }}
-                </a>
+                </span>
             @endif
 
             <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Pages\DocumentController;
 use App\Http\Controllers\Pages\IndexController;
 use App\Http\Controllers\Pages\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -15,9 +16,17 @@ use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 
 Route::get('/', IndexController::class)->name('home');
 
+Route::get('/gradivo/{document:slug}', [DocumentController::class, 'show'])->name('document.show');
+
+Route::get('/profil/{user:slug}', [ProfileController::class, 'show'])->name('profile.show');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profil', [ProfileController::class, 'index'])->name('profile');
     Route::get('/profil/uredi', [ProfileController::class, 'edit'])->name('profile.edit');
+
+    Route::get('/gradivo/{document:slug}/prenesi/{file}', [DocumentController::class, 'downloadFile'])->name('document.download.file');
+    Route::get('/gradivo/{document:slug}/prenesi-zip', [DocumentController::class, 'downloadZip'])->name('document.download.zip');
+    Route::delete('/gradivo/{document:slug}', [DocumentController::class, 'destroy'])->name('document.destroy');
 });
 
 Route::middleware('web')->group(function () {
