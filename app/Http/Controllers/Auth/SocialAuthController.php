@@ -60,6 +60,8 @@ class SocialAuthController extends Controller
                         'display_name' => $name,
                         'name' => $name,
                         'email' => $email,
+                        'email_verified_at' => now(),
+                        'password' => Str::random(32),
                         $providerColumn => $providerId,
                     ]);
                 }

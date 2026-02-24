@@ -11,13 +11,6 @@ class ReportReason extends Model
     /** @use HasFactory<\Database\Factories\ReportReasonFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'sort_order',
-    ];
-
-    // ── Relationships ─────────────────────────────────────────────────────────
-
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);

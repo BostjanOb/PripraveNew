@@ -1,10 +1,6 @@
 <?php
 
 use App\Livewire\DownloadedDocumentsTab;
-use App\Livewire\Profile\AvatarUpload;
-use App\Livewire\Profile\BasicInfoForm;
-use App\Livewire\Profile\ChangePasswordForm;
-use App\Livewire\Profile\LinkedAccounts;
 use App\Livewire\SavedDocumentsTab;
 use App\Livewire\UploadedDocumentsTab;
 use App\Models\Document;
@@ -60,7 +56,7 @@ it('can update display name and name', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(BasicInfoForm::class)
+        ->test('profile.basic-info-form')
         ->set('displayName', 'Novo Prikazno Ime')
         ->set('name', 'Novo Ime Priimek')
         ->call('saveBasicInfo')
@@ -75,7 +71,7 @@ it('does not change email when saving basic info', function () {
     $user = User::factory()->create(['email' => 'original@email.si']);
 
     Livewire::actingAs($user)
-        ->test(BasicInfoForm::class)
+        ->test('profile.basic-info-form')
         ->set('displayName', 'Novo Ime')
         ->set('name', 'Ime Priimek')
         ->call('saveBasicInfo')
@@ -88,7 +84,7 @@ it('validates display name is required when saving basic info', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(BasicInfoForm::class)
+        ->test('profile.basic-info-form')
         ->set('displayName', '')
         ->call('saveBasicInfo')
         ->assertHasErrors(['displayName' => 'required']);
@@ -98,7 +94,7 @@ it('validates display name minimum length when saving basic info', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(BasicInfoForm::class)
+        ->test('profile.basic-info-form')
         ->set('displayName', 'A')
         ->call('saveBasicInfo')
         ->assertHasErrors(['displayName' => 'min']);
@@ -108,7 +104,7 @@ it('validates name is required when saving basic info', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(BasicInfoForm::class)
+        ->test('profile.basic-info-form')
         ->set('name', '')
         ->call('saveBasicInfo')
         ->assertHasErrors(['name' => 'required']);
@@ -120,7 +116,7 @@ it('can change the password with correct current password', function () {
     $user = User::factory()->create(['password' => Hash::make('old-password')]);
 
     Livewire::actingAs($user)
-        ->test(ChangePasswordForm::class)
+        ->test('profile.change-password-form')
         ->set('currentPassword', 'old-password')
         ->set('newPassword', 'new-password-1!')
         ->set('confirmPassword', 'new-password-1!')
@@ -134,7 +130,7 @@ it('rejects password change with wrong current password', function () {
     $user = User::factory()->create(['password' => Hash::make('correct')]);
 
     Livewire::actingAs($user)
-        ->test(ChangePasswordForm::class)
+        ->test('profile.change-password-form')
         ->set('currentPassword', 'wrong')
         ->set('newPassword', 'new-password-1!')
         ->set('confirmPassword', 'new-password-1!')
@@ -146,7 +142,7 @@ it('rejects password change when confirmation does not match', function () {
     $user = User::factory()->create(['password' => Hash::make('correct')]);
 
     Livewire::actingAs($user)
-        ->test(ChangePasswordForm::class)
+        ->test('profile.change-password-form')
         ->set('currentPassword', 'correct')
         ->set('newPassword', 'new-password-1!')
         ->set('confirmPassword', 'different-password-1!')
@@ -162,7 +158,7 @@ it('can upload an avatar image', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(AvatarUpload::class)
+        ->test('profile.avatar-upload')
         ->set('avatar', UploadedFile::fake()->image('avatar.jpg', 200, 200))
         ->call('saveAvatar')
         ->assertHasNoErrors();
@@ -176,7 +172,7 @@ it('rejects avatar files that are too large', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(AvatarUpload::class)
+        ->test('profile.avatar-upload')
         ->set('avatar', UploadedFile::fake()->image('big.jpg')->size(3000))
         ->call('saveAvatar')
         ->assertHasErrors(['avatar' => 'max']);
@@ -191,7 +187,7 @@ it('can unlink google account when user has a password', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(LinkedAccounts::class)
+        ->test('profile.linked-accounts')
         ->call('unlink', 'google')
         ->assertHasNoErrors();
 
@@ -205,7 +201,7 @@ it('can unlink facebook account when user has a password', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(LinkedAccounts::class)
+        ->test('profile.linked-accounts')
         ->call('unlink', 'facebook')
         ->assertHasNoErrors();
 
@@ -218,7 +214,7 @@ it('cannot unlink when user has no password set', function () {
     ]);
 
     Livewire::actingAs($user->fresh())
-        ->test(LinkedAccounts::class)
+        ->test('profile.linked-accounts')
         ->call('unlink', 'google')
         ->assertHasErrors(['unlink']);
 
@@ -229,7 +225,7 @@ it('rejects invalid provider in unlink', function () {
     $user = User::factory()->create(['password' => Hash::make('secret')]);
 
     Livewire::actingAs($user)
-        ->test(LinkedAccounts::class)
+        ->test('profile.linked-accounts')
         ->call('unlink', 'twitter')
         ->assertStatus(422);
 });

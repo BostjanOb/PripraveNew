@@ -11,14 +11,6 @@ class Comment extends Model
     /** @use HasFactory<\Database\Factories\CommentFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'document_id',
-        'user_id',
-        'text',
-    ];
-
-    // ── Relationships ─────────────────────────────────────────────────────────
-
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);

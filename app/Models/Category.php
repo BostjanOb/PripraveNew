@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,15 +13,6 @@ class Category extends Model
 {
     /** @use HasFactory<\Database\Factories\CategoryFactory> */
     use HasFactory;
-
-    protected $fillable = [
-        'name',
-        'slug',
-        'parent_id',
-        'sort_order',
-    ];
-
-    // ── Relationships ─────────────────────────────────────────────────────────
 
     public function parent(): BelongsTo
     {
@@ -37,9 +29,8 @@ class Category extends Model
         return $this->hasMany(Document::class);
     }
 
-    // ── Scopes ────────────────────────────────────────────────────────────────
-
-    public function scopeTopLevel(Builder $query): Builder
+    #[Scope]
+    public function topLevel(Builder $query): Builder
     {
         return $query->whereNull('parent_id');
     }
@@ -48,8 +39,6 @@ class Category extends Model
     {
         return $query->whereNotNull('parent_id');
     }
-
-    // ── Methods ───────────────────────────────────────────────────────────────
 
     public function isTopLevel(): bool
     {

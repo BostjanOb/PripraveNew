@@ -12,22 +12,12 @@ class Report extends Model
     /** @use HasFactory<\Database\Factories\ReportFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'document_id',
-        'user_id',
-        'report_reason_id',
-        'message',
-        'status',
-    ];
-
     protected function casts(): array
     {
         return [
             'status' => ReportStatus::class,
         ];
     }
-
-    // ── Relationships ─────────────────────────────────────────────────────────
 
     public function document(): BelongsTo
     {

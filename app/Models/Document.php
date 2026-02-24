@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,23 +15,6 @@ class Document extends Model
 {
     /** @use HasFactory<\Database\Factories\DocumentFactory> */
     use HasFactory, SoftDeletes;
-
-    protected $fillable = [
-        'title',
-        'slug',
-        'description',
-        'topic',
-        'keywords',
-        'category_id',
-        'school_type_id',
-        'grade_id',
-        'subject_id',
-        'user_id',
-        'views_count',
-        'downloads_count',
-        'rating_count',
-        'rating_avg',
-    ];
 
     protected function casts(): array
     {
@@ -46,8 +30,6 @@ class Document extends Model
     {
         return 'slug';
     }
-
-    // ── Relationships ─────────────────────────────────────────────────────────
 
     public function user(): BelongsTo
     {
@@ -99,9 +81,8 @@ class Document extends Model
         return $this->belongsToMany(User::class, 'saved_documents')->withTimestamps();
     }
 
-    // ── Scopes ────────────────────────────────────────────────────────────────
-
-    public function scopeSearch(Builder $query, string $search): Builder
+    #[Scope]
+    public function search(Builder $query, string $search): Builder
     {
         return $query->where(function (Builder $q) use ($search) {
             $q->where('title', 'like', "%{$search}%")
@@ -111,27 +92,32 @@ class Document extends Model
         });
     }
 
-    public function scopeForSchoolType(Builder $query, int $schoolTypeId): Builder
+    #[Scope]
+    public function forSchoolType(Builder $query, int $schoolTypeId): Builder
     {
         return $query->where('school_type_id', $schoolTypeId);
     }
 
-    public function scopeForGrade(Builder $query, int $gradeId): Builder
+    #[Scope]
+    public function forGrade(Builder $query, int $gradeId): Builder
     {
         return $query->where('grade_id', $gradeId);
     }
 
-    public function scopeForSubject(Builder $query, int $subjectId): Builder
+    #[Scope]
+    public function forSubject(Builder $query, int $subjectId): Builder
     {
         return $query->where('subject_id', $subjectId);
     }
 
-    public function scopeForCategory(Builder $query, int $categoryId): Builder
+    #[Scope]
+    public function forCategory(Builder $query, int $categoryId): Builder
     {
         return $query->where('category_id', $categoryId);
     }
 
-    public function scopeSorted(Builder $query, string $sort = 'newest'): Builder
+    #[Scope]
+    public function sorted(Builder $query, string $sort = 'newest'): Builder
     {
         return match ($sort) {
             'oldest' => $query->oldest(),
@@ -140,8 +126,6 @@ class Document extends Model
             default => $query->latest(),
         };
     }
-
-    // ── Methods ───────────────────────────────────────────────────────────────
 
     public function incrementViews(): void
     {

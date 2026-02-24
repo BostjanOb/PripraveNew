@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,5 +18,14 @@ class ContactMessageFactory extends Factory
             'subject' => fake()->sentence(5),
             'message' => fake()->paragraph(),
         ];
+    }
+
+    public function replied(): static
+    {
+        return $this->state(fn (): array => [
+            'reply_message' => fake()->paragraph(),
+            'replied_at' => fake()->dateTimeBetween('-7 days'),
+            'replied_by' => User::factory(),
+        ]);
     }
 }

@@ -11,18 +11,10 @@ class SchoolType extends Model
     /** @use HasFactory<\Database\Factories\SchoolTypeFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'slug',
-        'sort_order',
-    ];
-
     public function getRouteKeyName(): string
     {
         return 'slug';
     }
-
-    // ── Relationships ─────────────────────────────────────────────────────────
 
     public function grades(): HasMany
     {

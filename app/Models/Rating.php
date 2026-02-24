@@ -11,20 +11,12 @@ class Rating extends Model
     /** @use HasFactory<\Database\Factories\RatingFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'document_id',
-        'user_id',
-        'rating',
-    ];
-
     protected function casts(): array
     {
         return [
             'rating' => 'integer',
         ];
     }
-
-    // ── Relationships ─────────────────────────────────────────────────────────
 
     public function document(): BelongsTo
     {

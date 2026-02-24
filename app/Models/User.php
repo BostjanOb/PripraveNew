@@ -16,11 +16,6 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasSlug, Notifiable;
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
     protected function casts(): array
     {
         return [
@@ -40,8 +35,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return 'slug';
     }
-
-    // ── Relationships ─────────────────────────────────────────────────────────
 
     public function documents(): HasMany
     {
@@ -73,8 +66,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(UserBadge::class);
     }
 
-    // ── Accessors ─────────────────────────────────────────────────────────────
-
     public function getInitialsAttribute(): string
     {
         $words = explode(' ', trim($this->display_name));
@@ -94,8 +85,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return null;
     }
-
-    // ── Helper methods ────────────────────────────────────────────────────────
 
     public function uploadCount(): int
     {

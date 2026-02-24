@@ -116,13 +116,13 @@
 
 /* Remove native browser outline from inputs inside Flux wrappers — the wrapper handles the focus ring */
 [data-flux-input] input:focus-visible,
-[data-flux-input] textarea:focus-visible {
+[data-flux-textarea]:focus-visible {
     outline: none;
 }
 
 /* Draw a green focus ring on the Flux input wrapper when the inner control is focused */
 [data-flux-input]:has(input:focus-visible),
-[data-flux-input]:has(textarea:focus-visible) {
+[data-flux-textarea]:focus-visible {
     outline: 2px solid hsl(var(--primary));
     outline-offset: 1px;
     border-radius: var(--radius-md);

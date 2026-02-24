@@ -12,14 +12,6 @@ class Grade extends Model
     /** @use HasFactory<\Database\Factories\GradeFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'school_type_id',
-        'name',
-        'sort_order',
-    ];
-
-    // ── Relationships ─────────────────────────────────────────────────────────
-
     public function schoolType(): BelongsTo
     {
         return $this->belongsTo(SchoolType::class);

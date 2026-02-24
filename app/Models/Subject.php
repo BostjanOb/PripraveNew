@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,13 +14,6 @@ class Subject extends Model
     /** @use HasFactory<\Database\Factories\SubjectFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'school_type_id',
-    ];
-
-    // ── Relationships ─────────────────────────────────────────────────────────
-
     public function schoolType(): BelongsTo
     {
         return $this->belongsTo(SchoolType::class);
@@ -30,9 +24,8 @@ class Subject extends Model
         return $this->hasMany(Document::class);
     }
 
-    // ── Scopes ────────────────────────────────────────────────────────────────
-
-    public function scopeForSchoolType(Builder $query, int $schoolTypeId): Builder
+    #[Scope]
+    public function forSchoolType(Builder $query, int $schoolTypeId): Builder
     {
         return $query->where('school_type_id', $schoolTypeId);
     }

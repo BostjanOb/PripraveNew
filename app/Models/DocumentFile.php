@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,15 +30,6 @@ class DocumentFile extends Model
 
     public const MAX_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
 
-    protected $fillable = [
-        'document_id',
-        'original_name',
-        'storage_path',
-        'size_bytes',
-        'mime_type',
-        'extension',
-    ];
-
     protected function casts(): array
     {
         return [
@@ -45,44 +37,29 @@ class DocumentFile extends Model
         ];
     }
 
-    // ── Relationships ─────────────────────────────────────────────────────────
-
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);
     }
 
-    // ── Accessors ─────────────────────────────────────────────────────────────
-
-    public function getUrlAttribute(): string
+    public function url(): Attribute
     {
-        return Storage::url($this->storage_path);
+        return Attribute::make(
+            get: fn () => Storage::url($this->storage_path),
+        );
     }
 
-    public function getHumanSizeAttribute(): string
+    public function icon(): Attribute
     {
-        $bytes = $this->size_bytes;
-
-        if ($bytes >= 1024 * 1024) {
-            return round($bytes / (1024 * 1024), 1).' MB';
-        }
-
-        if ($bytes >= 1024) {
-            return round($bytes / 1024, 1).' KB';
-        }
-
-        return $bytes.' B';
-    }
-
-    public function getIconAttribute(): string
-    {
-        return match ($this->extension) {
-            'pdf' => 'heroicon-o-document',
-            'doc', 'docx' => 'heroicon-o-document-text',
-            'ppt', 'pptx' => 'heroicon-o-presentation-chart-bar',
-            'xls', 'xlsx' => 'heroicon-o-table-cells',
-            'jpg', 'jpeg', 'png' => 'heroicon-o-photo',
-            default => 'heroicon-o-paper-clip',
-        };
+        return Attribute::make(
+            get: fn () => match ($this->extension) {
+                'pdf' => 'file-pdf',
+                'doc', 'docx' => 'file-word',
+                'ppt', 'pptx' => 'file-powerpoint',
+                'xls', 'xlsx' => 'file-excel',
+                'jpg', 'jpeg', 'png' => 'file-image',
+                default => 'file-lines',
+            },
+        );
     }
 }

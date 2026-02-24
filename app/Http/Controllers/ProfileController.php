@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Pages;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\BadgeService;
 use App\Support\BadgeRegistry;

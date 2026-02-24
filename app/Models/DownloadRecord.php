@@ -13,13 +13,6 @@ class DownloadRecord extends Model
 
     public const UPDATED_AT = null;
 
-    protected $fillable = [
-        'user_id',
-        'document_id',
-    ];
-
-    // ── Relationships ─────────────────────────────────────────────────────────
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
