@@ -52,7 +52,7 @@
             <div class="space-y-0.5">
                 <button
                     wire:click="setSchoolType(null)"
-                    class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors {{ $schoolTypeSlug === null ? 'bg-foreground font-semibold text-background' : 'text-muted-foreground hover:bg-secondary hover:text-foreground' }}"
+                    class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors {{ $selectedSchoolType === null ? 'bg-foreground font-semibold text-background' : 'text-muted-foreground hover:bg-secondary hover:text-foreground' }}"
                 >
                     <span>Vse stopnje</span>
                 </button>
@@ -61,7 +61,7 @@
                     @php $conf = $schoolTypeConfig[$st->slug] ?? $schoolTypeConfig['os']; @endphp
                     <button
                         wire:click="setSchoolType('{{ $st->slug }}')"
-                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors {{ $schoolTypeSlug === $st->slug ? $conf['filterActive'] . ' font-semibold' : 'text-muted-foreground hover:bg-secondary hover:text-foreground' }}"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors {{ $selectedSchoolType?->is($st) ? $conf['filterActive'] . ' font-semibold' : 'text-muted-foreground hover:bg-secondary hover:text-foreground' }}"
                     >
                         <span class="flex items-center gap-2">
                             {!! $schoolTypeIcons[$conf['icon']] !!}
@@ -115,7 +115,52 @@
     </div>
 
     {{-- ===== Predmet (Subject) - with search ===== --}}
-    <div x-data="{ open: true }" class="border-b border-border pb-4">
+    <div
+        x-data="{
+            open: true,
+            query: '',
+            visibleCount: {{ $subjects->count() }},
+            normalize(value) {
+                const characterMap = {
+                    'đ': 'd',
+                    'ð': 'd',
+                    'ø': 'o',
+                    'ł': 'l',
+                    'ß': 'ss',
+                    'æ': 'ae',
+                    'œ': 'oe',
+                };
+
+                const mapped = [...String(value ?? '').toLowerCase()]
+                    .map((character) => characterMap[character] ?? character)
+                    .join('');
+
+                return mapped
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '');
+            },
+            matches(element) {
+                const query = this.normalize(this.query);
+
+                if (query === '') {
+                    return true;
+                }
+
+                const subjectName = this.normalize(
+                    element.querySelector('[data-subject-name]')?.textContent ?? ''
+                );
+
+                return subjectName.includes(query);
+            },
+            updateVisibleCount() {
+                const items = this.$refs.subjectList?.querySelectorAll('[data-subject-item]') ?? [];
+                this.visibleCount = [...items].filter((item) => this.matches(item)).length;
+            },
+        }"
+        x-init="$nextTick(() => updateVisibleCount())"
+        x-effect="query; updateVisibleCount()"
+        class="border-b border-border pb-4"
+    >
         <button @click="open = !open" class="flex w-full items-center justify-between py-2">
             <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-pink-600">
                 <x-icon-regular.book-open class="size-3.5" />
@@ -128,17 +173,20 @@
                 <div class="relative">
                     <x-icon-regular.magnifying-glass class="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                     <input
-                        wire:model.live="subjectSearch"
+                        x-model="query"
                         type="text"
                         placeholder="Išči predmet..."
                         class="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-pink-300 focus:outline-none focus:ring-1 focus:ring-pink-200"
                     />
                 </div>
             </div>
-            <div class="max-h-52 space-y-0.5 overflow-y-auto">
+            <div x-ref="subjectList" class="max-h-52 space-y-0.5 overflow-y-auto">
                 @forelse($subjects as $subject)
                     @php $subjectCount = $facetCounts['subject_id'][$subject->id] ?? 0; @endphp
                     <button
+                        data-subject-item
+                        x-show="matches($el)"
+                        x-transition
                         wire:click="setSubject({{ $subjectId === $subject->id ? 'null' : $subject->id }})"
                         @if($hasFacetCounts && $subjectCount === 0 && $subjectId !== $subject->id) disabled @endif
                         class="flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors {{ $subjectId === $subject->id
@@ -152,7 +200,7 @@
                             @if($subjectId === $subject->id)
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                             @endif
-                            <span class="truncate">{{ $subject->name }}</span>
+                            <span data-subject-name class="truncate">{{ $subject->name }}</span>
                         </span>
                         @if($subjectCount > 0)
                             <span class="ml-2 shrink-0 text-xs opacity-70">{{ $subjectCount }}</span>
@@ -161,6 +209,19 @@
                 @empty
                     <p class="px-3 py-2 text-xs text-muted-foreground">Ni zadetkov</p>
                 @endforelse
+                @if($subjects->isNotEmpty())
+                    <p
+                        x-cloak
+                        x-show="query !== '' && visibleCount === 0"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-1"
+                        class="px-3 py-2 text-xs text-muted-foreground"
+                    >Ni zadetkov</p>
+                @endif
             </div>
         </div>
     </div>

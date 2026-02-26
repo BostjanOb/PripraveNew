@@ -41,18 +41,14 @@ it('renders the browse page with stopnja query param', function () {
     $this->get(route('browse', ['stopnja' => 'os']))->assertSuccessful();
 });
 
-it('normalizes predskolska slug to pv', function () {
-    SchoolType::factory()->create(['slug' => 'pv']);
+it('uses alpine for subject filter search', function () {
+    Subject::factory()->create(['name' => 'Angleščina']);
 
-    $this->get(route('browse', ['stopnja' => 'predskolska']))
-        ->assertSuccessful();
-});
-
-it('normalizes osnovna slug to os', function () {
-    SchoolType::factory()->create(['slug' => 'os']);
-
-    $this->get(route('browse', ['stopnja' => 'osnovna']))
-        ->assertSuccessful();
+    Livewire::test(BrowseDocuments::class)
+        ->assertSeeHtml('x-model="query"')
+        ->assertSeeHtml('data-subject-item')
+        ->assertSeeHtml('x-show="matches($el)"')
+        ->assertDontSeeHtml('wire:model.live="subjectSearch"');
 });
 
 // ── Document display ─────────────────────────────────────────────────────────
@@ -77,6 +73,71 @@ it('filters by school type', function () {
         ->call('setSchoolType', 'os')
         ->assertSee('Osnovna doc')
         ->assertDontSee('Srednja doc');
+});
+
+it('filters by school type from stopnja query param using school type slug', function () {
+    $pvSchoolType = SchoolType::factory()->create(['slug' => 'pv']);
+    $osSchoolType = SchoolType::factory()->create(['slug' => 'os']);
+
+    $pvGrade = Grade::factory()->create(['school_type_id' => $pvSchoolType->id]);
+    $pvSubject = Subject::factory()->create(['school_type_id' => $pvSchoolType->id]);
+    $osGrade = Grade::factory()->create(['school_type_id' => $osSchoolType->id]);
+    $osSubject = Subject::factory()->create(['school_type_id' => $osSchoolType->id]);
+    $category = Category::factory()->create();
+
+    Document::factory()->create([
+        'title' => 'PV doc',
+        'user_id' => User::factory(),
+        'school_type_id' => $pvSchoolType->id,
+        'grade_id' => $pvGrade->id,
+        'subject_id' => $pvSubject->id,
+        'category_id' => $category->id,
+    ]);
+
+    Document::factory()->create([
+        'title' => 'OS doc',
+        'user_id' => User::factory(),
+        'school_type_id' => $osSchoolType->id,
+        'grade_id' => $osGrade->id,
+        'subject_id' => $osSubject->id,
+        'category_id' => $category->id,
+    ]);
+
+    Livewire::withQueryParams(['stopnja' => 'pv'])
+        ->test(BrowseDocuments::class)
+        ->assertSee('PV doc')
+        ->assertDontSee('OS doc');
+});
+
+it('shows facet counts while structured filters are active', function () {
+    $schoolTypeOs = SchoolType::factory()->create(['slug' => 'os']);
+    $schoolTypeSs = SchoolType::factory()->create(['slug' => 'ss']);
+    $grade = Grade::factory()->create(['school_type_id' => $schoolTypeOs->id]);
+    $subject = Subject::factory()->create(['school_type_id' => $schoolTypeOs->id]);
+    $category = Category::factory()->create();
+
+    Document::factory()->create([
+        'user_id' => User::factory(),
+        'school_type_id' => $schoolTypeOs->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+        'category_id' => $category->id,
+    ]);
+
+    Document::factory()->create([
+        'user_id' => User::factory(),
+        'school_type_id' => $schoolTypeSs->id,
+        'grade_id' => Grade::factory()->create(['school_type_id' => $schoolTypeSs->id])->id,
+        'subject_id' => Subject::factory()->create(['school_type_id' => $schoolTypeSs->id])->id,
+        'category_id' => Category::factory()->create()->id,
+    ]);
+
+    Livewire::withQueryParams(['stopnja' => 'os'])
+        ->test(BrowseDocuments::class)
+        ->assertViewHas('hasFacetCounts', true)
+        ->assertViewHas('facetCounts', function (array $facetCounts) use ($schoolTypeOs): bool {
+            return ($facetCounts['school_type_id'][$schoolTypeOs->id] ?? 0) > 0;
+        });
 });
 
 it('filters by grade', function () {
@@ -109,6 +170,37 @@ it('filters by grade', function () {
         ->set('gradeId', $grade1->id)
         ->assertSee('Grade 1 doc')
         ->assertDontSee('Grade 2 doc');
+});
+
+it('orders grades by school type sort order', function () {
+    $schoolTypePv = SchoolType::factory()->create(['slug' => 'pv', 'sort_order' => 3]);
+    $schoolTypeOs = SchoolType::factory()->create(['slug' => 'os', 'sort_order' => 1]);
+    $schoolTypeSs = SchoolType::factory()->create(['slug' => 'ss', 'sort_order' => 2]);
+
+    $pvGrade = Grade::factory()->create([
+        'school_type_id' => $schoolTypePv->id,
+        'name' => 'PV 1',
+        'sort_order' => 1,
+    ]);
+    $osGrade = Grade::factory()->create([
+        'school_type_id' => $schoolTypeOs->id,
+        'name' => 'OS 1',
+        'sort_order' => 1,
+    ]);
+    $ssGrade = Grade::factory()->create([
+        'school_type_id' => $schoolTypeSs->id,
+        'name' => 'SS 1',
+        'sort_order' => 1,
+    ]);
+
+    Livewire::test(BrowseDocuments::class)
+        ->assertViewHas('grades', function (\Illuminate\Support\Collection $grades) use ($pvGrade, $osGrade, $ssGrade): bool {
+            return $grades->pluck('id')->values()->all() === [
+                $osGrade->id,
+                $ssGrade->id,
+                $pvGrade->id,
+            ];
+        });
 });
 
 it('filters by subject', function () {

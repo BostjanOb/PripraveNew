@@ -37,7 +37,7 @@
     $titleHoverClass = $showActions ? 'hover:text-emerald-700' : 'group-hover:text-teal-700';
 @endphp
 
-<div class="group relative flex flex-col gap-3 rounded-2xl border border-border bg-background p-4 transition-all {{ $hoverClass }} md:flex-row md:items-center md:justify-between md:gap-4"
+<div class="group relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 transition-all {{ $hoverClass }} md:flex-row md:items-center md:justify-between md:gap-4"
      @if(!$showActions) wire:key="doc-{{ $document->id }}" @endif>
 
     @if(!$showActions)

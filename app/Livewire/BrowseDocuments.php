@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\Grade;
 use App\Models\SchoolType;
 use App\Models\Subject;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
@@ -33,11 +34,9 @@ class BrowseDocuments extends Component
     #[Url(as: 'razvrsti')]
     public string $sort = 'newest';
 
-    public string $subjectSearch = '';
-
     public int $page = 1;
 
-    private const ITEMS_PER_PAGE = 10;
+    private const ITEMS_PER_PAGE = 20;
 
     public function mount(): void
     {
@@ -55,7 +54,6 @@ class BrowseDocuments extends Component
         $this->normalizeSchoolTypeSlug();
         $this->gradeId = null;
         $this->subjectId = null;
-        $this->subjectSearch = '';
         $this->page = 1;
     }
 
@@ -94,7 +92,7 @@ class BrowseDocuments extends Component
 
     public function clearAllFilters(): void
     {
-        $this->reset(['search', 'schoolTypeSlug', 'gradeId', 'subjectId', 'categoryIds', 'sort', 'subjectSearch']);
+        $this->reset(['search', 'schoolTypeSlug', 'gradeId', 'subjectId', 'categoryIds', 'sort']);
         $this->page = 1;
     }
 
@@ -119,27 +117,24 @@ class BrowseDocuments extends Component
         $categories = Category::query()->topLevel()->with('children')->orderBy('sort_order')->get();
         $allCategories = $categories->flatMap(fn (Category $c) => $c->children->isEmpty() ? collect([$c]) : $c->children);
 
-        $schoolType = $this->schoolTypeSlug
-            ? $schoolTypes->firstWhere('slug', $this->schoolTypeSlug)
-            : null;
+        $schoolType = $this->resolveSchoolType($schoolTypes);
         $schoolTypeId = $schoolType?->id;
 
-        $grades = Grade::query()->orderBy('sort_order')->get();
+        $grades = Grade::query()
+            ->select('grades.*')
+            ->join('school_types', 'school_types.id', '=', 'grades.school_type_id')
+            ->orderBy('school_types.sort_order')
+            ->orderBy('grades.sort_order')
+            ->orderBy('grades.name')
+            ->get();
 
         $subjects = $schoolTypeId
             ? Subject::query()->where('school_type_id', $schoolTypeId)->orderBy('name')->get()
             : Subject::query()->orderBy('name')->get();
 
-        if ($this->subjectSearch !== '') {
-            $subjectSearchLower = mb_strtolower($this->subjectSearch);
-            $subjects = $subjects->filter(
-                fn (Subject $s) => str_contains(mb_strtolower($s->name), $subjectSearchLower)
-            );
-        }
+        $shouldUseMeilisearch = config('scout.driver') === 'meilisearch' && ! $this->hasStructuredFilters();
 
-        $isMeilisearch = config('scout.driver') === 'meilisearch';
-
-        if ($isMeilisearch) {
+        if ($shouldUseMeilisearch) {
             $result = $this->searchMeilisearch($schoolTypeId);
         } else {
             $result = $this->searchCollection($schoolTypeId);
@@ -212,28 +207,10 @@ class BrowseDocuments extends Component
      */
     private function searchCollection(?int $schoolTypeId): array
     {
-        $query = Document::query()
-            ->with(['user', 'schoolType', 'grade', 'subject', 'category']);
-
-        if ($this->search !== '') {
-            $query->likeSearch($this->search);
-        }
-
-        if ($schoolTypeId) {
-            $query->where('school_type_id', $schoolTypeId);
-        }
-
-        if ($this->gradeId) {
-            $query->where('grade_id', $this->gradeId);
-        }
-
-        if ($this->subjectId) {
-            $query->where('subject_id', $this->subjectId);
-        }
-
-        if ($this->categoryIds !== []) {
-            $query->whereIn('category_id', $this->categoryIds);
-        }
+        $query = $this->applyCollectionFilters(
+            Document::query()->with(['user', 'schoolType', 'grade', 'subject', 'category']),
+            $schoolTypeId
+        );
 
         match ($this->sort) {
             'oldest' => $query->oldest(),
@@ -245,13 +222,14 @@ class BrowseDocuments extends Component
         $totalHits = $query->count();
         $totalPages = max(1, (int) ceil($totalHits / self::ITEMS_PER_PAGE));
         $documents = $query->skip(($this->page - 1) * self::ITEMS_PER_PAGE)->take(self::ITEMS_PER_PAGE)->get();
+        $facetCounts = $this->computeCollectionFacetCounts($schoolTypeId);
 
         return [
             'documents' => $documents,
             'totalHits' => $totalHits,
             'totalPages' => $totalPages,
             'currentPage' => $this->page,
-            'facetCounts' => [],
+            'facetCounts' => $facetCounts,
         ];
     }
 
@@ -349,7 +327,7 @@ class BrowseDocuments extends Component
     }
 
     /**
-     * Normalize various slug formats (pv, os, ss, predskolska, osnovna, srednja).
+     * Keep stopnja URL value aligned with school_types.slug format.
      */
     private function normalizeSchoolTypeSlug(): void
     {
@@ -357,12 +335,117 @@ class BrowseDocuments extends Component
             return;
         }
 
-        $mapping = [
-            'predskolska' => 'pv',
-            'osnovna' => 'os',
-            'srednja' => 'ss',
-        ];
+        $this->schoolTypeSlug = mb_strtolower(trim($this->schoolTypeSlug));
+    }
 
-        $this->schoolTypeSlug = $mapping[$this->schoolTypeSlug] ?? $this->schoolTypeSlug;
+    private function resolveSchoolType(Collection $schoolTypes): ?SchoolType
+    {
+        if ($this->schoolTypeSlug === null) {
+            return null;
+        }
+
+        /** @var ?SchoolType */
+        return $schoolTypes->first(
+            fn (SchoolType $schoolType): bool => mb_strtolower($schoolType->slug) === $this->schoolTypeSlug
+        );
+    }
+
+    private function hasStructuredFilters(): bool
+    {
+        return $this->schoolTypeSlug !== null
+            || $this->gradeId !== null
+            || $this->subjectId !== null
+            || $this->categoryIds !== [];
+    }
+
+    private function applyCollectionFilters(
+        Builder $query,
+        ?int $schoolTypeId,
+        bool $excludeSchoolType = false,
+        bool $excludeGrade = false,
+        bool $excludeSubject = false,
+        bool $excludeCategory = false
+    ): Builder {
+        if ($this->search !== '') {
+            $query->likeSearch($this->search);
+        }
+
+        if (! $excludeSchoolType && $schoolTypeId) {
+            $query->where('school_type_id', $schoolTypeId);
+        }
+
+        if (! $excludeGrade && $this->gradeId) {
+            $query->where('grade_id', $this->gradeId);
+        }
+
+        if (! $excludeSubject && $this->subjectId) {
+            $query->where('subject_id', $this->subjectId);
+        }
+
+        if (! $excludeCategory && $this->categoryIds !== []) {
+            $query->whereIn('category_id', $this->categoryIds);
+        }
+
+        return $query;
+    }
+
+    /**
+     * @return array<string, array<int, int>>
+     */
+    private function computeCollectionFacetCounts(?int $schoolTypeId): array
+    {
+        $schoolTypeCounts = $this->applyCollectionFilters(
+            Document::query(),
+            $schoolTypeId,
+            excludeSchoolType: true
+        )
+            ->selectRaw('school_type_id, COUNT(*) as aggregate')
+            ->groupBy('school_type_id')
+            ->pluck('aggregate', 'school_type_id')
+            ->map(fn (int|string $count): int => (int) $count)
+            ->all();
+
+        $gradeCounts = $this->applyCollectionFilters(
+            Document::query(),
+            $schoolTypeId,
+            excludeGrade: true
+        )
+            ->whereNotNull('grade_id')
+            ->selectRaw('grade_id, COUNT(*) as aggregate')
+            ->groupBy('grade_id')
+            ->pluck('aggregate', 'grade_id')
+            ->map(fn (int|string $count): int => (int) $count)
+            ->all();
+
+        $subjectCounts = $this->applyCollectionFilters(
+            Document::query(),
+            $schoolTypeId,
+            excludeSubject: true
+        )
+            ->whereNotNull('subject_id')
+            ->selectRaw('subject_id, COUNT(*) as aggregate')
+            ->groupBy('subject_id')
+            ->pluck('aggregate', 'subject_id')
+            ->map(fn (int|string $count): int => (int) $count)
+            ->all();
+
+        $categoryCounts = $this->applyCollectionFilters(
+            Document::query(),
+            $schoolTypeId,
+            excludeCategory: true
+        )
+            ->whereNotNull('category_id')
+            ->selectRaw('category_id, COUNT(*) as aggregate')
+            ->groupBy('category_id')
+            ->pluck('aggregate', 'category_id')
+            ->map(fn (int|string $count): int => (int) $count)
+            ->all();
+
+        return [
+            'school_type_id' => $schoolTypeCounts,
+            'grade_id' => $gradeCounts,
+            'subject_id' => $subjectCounts,
+            'category_id' => $categoryCounts,
+        ];
     }
 }
