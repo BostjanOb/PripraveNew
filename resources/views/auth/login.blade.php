@@ -88,6 +88,14 @@
                     <flux:error name="password" />
                 </flux:field>
 
+                <flux:checkbox
+                    id="remember"
+                    name="remember"
+                    value="1"
+                    label="Zapomni si me"
+                    :checked="(bool) old('remember')"
+                />
+
                 <flux:button type="submit" variant="primary" tabindex="3" class="w-full">
                     Prijava
                 </flux:button>
