@@ -46,7 +46,7 @@
 
             {{-- Desktop nav --}}
             <nav class="hidden items-center gap-1 md:flex">
-                <a href="{{ url('/brskanje') }}" class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                <a href="{{ route('browse') }}" class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
                     Brskanje
                 </a>
                 <a href="{{ url('/pomoc') }}" class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
@@ -94,6 +94,9 @@
                             <flux:navmenu.item href="{{ url('/profil') }}" icon="icon-regular.user">
                                 Moj profil
                             </flux:navmenu.item>
+                            <flux:navmenu.item href="{{ route('profile.edit') }}" icon="icon-regular.cog">
+                                Uredi profil
+                            </flux:navmenu.item>
                             <flux:navmenu.separator />
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -139,7 +142,7 @@
         {{-- Mobile menu --}}
         <div x-show="mobileOpen" class="border-t border-border bg-card px-4 pb-4 pt-2 md:hidden">
             <nav class="flex flex-col gap-1">
-                <a href="{{ url('/brskanje') }}" class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground">
+                <a href="{{ route('browse') }}" class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground">
                     Brskanje
                 </a>
                 <a href="{{ url('/pomoc') }}" class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground">
@@ -228,11 +231,11 @@
                 <div>
                     <h3 class="mb-3 text-sm font-semibold text-foreground">Priprave</h3>
                     <ul class="space-y-2">
-                        <li><a href="{{ url('/brskanje') }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Brskanje</a></li>
+                        <li><a href="{{ route('browse') }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Brskanje</a></li>
                         <li><a href="{{ url('/dodajanje') }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Dodajanje</a></li>
-                        <li><a href="{{ url('/brskanje?stopnja=predskolska') }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Predšolska vzgoja</a></li>
-                        <li><a href="{{ url('/brskanje?stopnja=osnovna') }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Osnovna šola</a></li>
-                        <li><a href="{{ url('/brskanje?stopnja=srednja') }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Srednja šola</a></li>
+                        <li><a href="{{ route('browse', ['stopnja' => 'pv']) }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Predšolska vzgoja</a></li>
+                        <li><a href="{{ route('browse', ['stopnja' => 'os']) }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Osnovna šola</a></li>
+                        <li><a href="{{ route('browse', ['stopnja' => 'ss']) }}" class="text-sm text-muted-foreground transition-colors hover:text-foreground">Srednja šola</a></li>
                     </ul>
                 </div>
 

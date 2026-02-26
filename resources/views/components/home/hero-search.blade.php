@@ -30,7 +30,7 @@
                 Učne priprave za predšolsko vzgojo, osnovno in srednjo šolo na enem mestu.
             </p>
 
-            <form action="{{ url('/brskanje') }}" method="GET" class="mt-8">
+            <form action="{{ route('browse') }}" method="GET" class="mt-8">
                 <div class="relative mx-auto max-w-xl lg:mx-0">
                     <div class="flex items-center overflow-hidden rounded-2xl border-2 border-teal-200 bg-card shadow-lg shadow-teal-100/50 transition-colors focus-within:border-teal-400 focus-within:shadow-teal-200/50 dark:shadow-teal-900/30 dark:focus-within:shadow-teal-900/40">
                         <x-icon-regular.magnifying-glass class="ml-4 size-5 shrink-0 text-teal-500" />
@@ -63,7 +63,7 @@
                 @endphp
                 @foreach ($popularSearches as $term)
                     <a
-                        href="{{ url('/brskanje?q=' . urlencode($term['label'])) }}"
+                        href="{{ route('browse', ['q' => $term['label']]) }}"
                         class="rounded-full border px-3 py-1 text-xs font-medium transition-colors {{ $term['color'] }}"
                     >
                         {{ $term['label'] }}

@@ -71,7 +71,7 @@
                 $count = $schoolType->documents_count ?? 0;
             @endphp
             <a
-                href="{{ url('/brskanje?stopnja=' . $schoolType->slug) }}"
+                href="{{ route('browse', ['stopnja' => $schoolType->slug]) }}"
                 class="group relative flex flex-col items-start gap-4 overflow-hidden rounded-2xl border-2 {{ $config['borderColor'] }} {{ $config['bgLight'] }} p-6 text-left transition-all {{ $config['hoverBorder'] }} hover:shadow-lg {{ $config['shadowColor'] }}"
             >
                 {{-- Decorative corner gradient --}}

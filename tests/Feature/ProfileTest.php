@@ -25,7 +25,9 @@ it('shows the profile page to authenticated verified users', function () {
     $this->actingAs($user)
         ->get(route('profile'))
         ->assertSuccessful()
-        ->assertSee($user->display_name);
+        ->assertSee($user->display_name)
+        ->assertSee('Uredi profil')
+        ->assertSee(route('profile.edit'));
 });
 
 it('redirects unverified users away from the profile page', function () {
@@ -40,6 +42,10 @@ it('redirects unverified users away from the profile page', function () {
 
 it('requires auth to view the edit profile page', function () {
     $this->get(route('profile.edit'))->assertRedirect(route('login'));
+});
+
+it('redirects guest on direct edit profile path instead of returning 404', function () {
+    $this->get('/profil/uredi')->assertRedirect(route('login'));
 });
 
 it('shows the edit profile page to authenticated verified users', function () {

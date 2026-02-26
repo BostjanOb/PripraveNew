@@ -20,7 +20,7 @@
                         Najnovejše učne priprave naših uporabnikov
                     </p>
                 </div>
-                <a href="{{ url('/brskanje') }}" class="flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-700 transition-colors hover:bg-teal-100 dark:border-teal-800 dark:bg-teal-950/50 dark:text-teal-300 dark:hover:bg-teal-900/50">
+                <a href="{{ route('browse') }}" class="flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-700 transition-colors hover:bg-teal-100 dark:border-teal-800 dark:bg-teal-950/50 dark:text-teal-300 dark:hover:bg-teal-900/50">
                     Poglej vse
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -114,7 +114,7 @@
             @if ($documents->isNotEmpty())
                 <div class="mt-6 text-center">
                     <a
-                        href="{{ $activeType !== 'all' ? url('/brskanje?stopnja=' . $activeType) : url('/brskanje') }}"
+                        href="{{ $activeType !== 'all' ? route('browse', ['stopnja' => $activeType]) : route('browse') }}"
                         class="inline-block rounded-xl border-2 border-teal-200 bg-teal-50 px-6 py-2.5 text-sm font-semibold text-teal-700 transition-all hover:bg-teal-100 hover:shadow-md hover:shadow-teal-100/50 dark:border-teal-800 dark:bg-teal-950/50 dark:text-teal-300 dark:hover:bg-teal-900/50"
                     >
                         Pokaži več priprav

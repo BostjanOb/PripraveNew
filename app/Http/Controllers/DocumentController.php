@@ -60,6 +60,24 @@ class DocumentController extends Controller
 
         $document->incrementDownloads();
 
+        // If the storage path is a zip, extract the specific file from it
+        if (str_ends_with($file->storage_path, '.zip') && Storage::exists($file->storage_path)) {
+            $zipFullPath = Storage::path($file->storage_path);
+
+            return response()->streamDownload(function () use ($zipFullPath, $file) {
+                $zip = new ZipArchive;
+                if ($zip->open($zipFullPath) === true) {
+                    $content = $zip->getFromName($file->original_name);
+                    $zip->close();
+                    if ($content !== false) {
+                        echo $content;
+                    }
+                }
+            }, $file->original_name, [
+                'Content-Type' => $file->mime_type,
+            ]);
+        }
+
         return Storage::download($file->storage_path, $file->original_name);
     }
 
@@ -73,7 +91,14 @@ class DocumentController extends Controller
         $document->incrementDownloads();
 
         $zipName = str($document->slug)->append('.zip')->toString();
+        $storagePath = $document->files->first()->storage_path;
 
+        // If files are stored as a single zip, serve it directly
+        if (str_ends_with($storagePath, '.zip') && Storage::exists($storagePath)) {
+            return Storage::download($storagePath, $zipName);
+        }
+
+        // Fallback: build zip on-the-fly for legacy documents
         return response()->streamDownload(function () use ($document) {
             $tempPath = tempnam(sys_get_temp_dir(), 'doc_zip_');
             $zip = new ZipArchive;

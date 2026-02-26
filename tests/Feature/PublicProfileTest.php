@@ -30,6 +30,10 @@ it('returns 404 for a non-existent user slug', function () {
         ->assertNotFound();
 });
 
+it('does not resolve reserved edit path as a public profile slug', function () {
+    $this->get('/profil/uredi')->assertRedirect(route('login'));
+});
+
 // ── Hero section content ──────────────────────────────────────────────────────
 
 it('displays the user display name on the public profile', function () {

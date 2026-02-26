@@ -11,9 +11,12 @@
         "laravel-lang/common": "^6.7",
         "laravel/fortify": "^1.34",
         "laravel/framework": "^12.0",
+        "laravel/scout": "^10.24",
         "laravel/socialite": "^5.24",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.12",
+        "livewire/flux-pro": "^2.12",
+        "meilisearch/meilisearch-php": "^1.16",
         "spatie/laravel-sluggable": "^3.8"
     },
     "require-dev": {
@@ -39,6 +42,12 @@
             "Tests\\": "tests/"
         }
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:Media24si/FluxPro.git"
+        }
+    ],
     "scripts": {
         "setup": [
             "composer install",

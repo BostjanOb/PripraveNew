@@ -10,11 +10,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 class Document extends Model
 {
     /** @use HasFactory<\Database\Factories\DocumentFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, Searchable, SoftDeletes;
 
     protected function casts(): array
     {
@@ -29,6 +31,27 @@ class Document extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * @return array{id: int, title: string, description: ?string, topic: ?string, keywords: ?string, school_type_id: int, grade_id: ?int, subject_id: int, category_id: int, downloads_count: int, views_count: int, created_at_ts: ?int}
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'topic' => $this->topic,
+            'keywords' => $this->keywords,
+            'school_type_id' => $this->school_type_id,
+            'grade_id' => $this->grade_id,
+            'subject_id' => $this->subject_id,
+            'category_id' => $this->category_id,
+            'downloads_count' => $this->downloads_count,
+            'views_count' => $this->views_count,
+            'created_at_ts' => $this->created_at?->timestamp,
+        ];
     }
 
     public function user(): BelongsTo
@@ -82,7 +105,7 @@ class Document extends Model
     }
 
     #[Scope]
-    public function search(Builder $query, string $search): Builder
+    public function likeSearch(Builder $query, string $search): Builder
     {
         return $query->where(function (Builder $q) use ($search) {
             $q->where('title', 'like', "%{$search}%")
@@ -150,6 +173,20 @@ class Document extends Model
             'rating_count' => $result->count ?? 0,
             'rating_avg' => $result->avg ? round((float) $result->avg, 2) : 0,
         ]);
+    }
+
+    public static function generateUniqueSlug(string $title): string
+    {
+        $slug = Str::slug($title);
+        $original = $slug;
+        $counter = 1;
+
+        while (static::withTrashed()->where('slug', $slug)->exists()) {
+            $slug = $original.'-'.$counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     public function relatedDocuments(int $limit = 4): \Illuminate\Database\Eloquent\Collection

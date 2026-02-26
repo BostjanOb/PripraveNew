@@ -18,11 +18,14 @@ use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 Route::get('/', IndexController::class)->name('home');
 Route::get('/pomoc', FaqController::class)->name('help');
 Route::view('/kontakt', 'pages.contact')->name('contact');
+Route::view('/pogoji-uporabe', 'pages.pogoji-uporabe')->name('terms');
 
+Route::get('/brskanje', \App\Livewire\BrowseDocuments::class)->name('browse');
 Route::get('/gradivo/{document:slug}', [DocumentController::class, 'show'])->name('document.show');
-Route::get('/profil/{user:slug}', [ProfileController::class, 'show'])->name('profile.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dodajanje', \App\Livewire\CreateDocument::class)->name('document.create');
+
     Route::get('/profil', [ProfileController::class, 'index'])->name('profile');
     Route::get('/profil/uredi', [ProfileController::class, 'edit'])->name('profile.edit');
 
@@ -30,6 +33,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/gradivo/{document:slug}/prenesi-zip', [DocumentController::class, 'downloadZip'])->name('document.download.zip');
     Route::delete('/gradivo/{document:slug}', [DocumentController::class, 'destroy'])->name('document.destroy');
 });
+
+Route::get('/profil/{user:slug}', [ProfileController::class, 'show'])
+    ->where('user', '^(?!uredi$).+')
+    ->name('profile.show');
 
 Route::middleware('guest')
     ->group(function () {

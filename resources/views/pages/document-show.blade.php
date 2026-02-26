@@ -45,7 +45,7 @@
         <div class="mx-auto max-w-6xl px-4 py-4">
             {{-- Back link --}}
             <div class="mb-3 flex items-center gap-2">
-                <a href="{{ url('/brskanje') }}" class="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                <a href="{{ route('browse') }}" class="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
                     <x-icon-regular.arrow-left class="size-4" />
                     <span class="hidden sm:inline">Nazaj na iskanje</span>
                 </a>
