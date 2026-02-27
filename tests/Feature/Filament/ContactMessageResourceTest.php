@@ -12,7 +12,7 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->create(['role' => 'admin']));
 });
 
 it('loads the contact messages resource page', function () {

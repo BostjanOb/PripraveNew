@@ -143,6 +143,7 @@ return [
             App\Models\Document::class => [
                 'filterableAttributes' => [
                     'school_type_id',
+                    'school_type_slug',
                     'grade_id',
                     'subject_id',
                     'category_id',

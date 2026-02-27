@@ -34,7 +34,7 @@ class Document extends Model
     }
 
     /**
-     * @return array{id: int, title: string, description: ?string, topic: ?string, keywords: ?string, school_type_id: int, grade_id: ?int, subject_id: int, category_id: int, downloads_count: int, views_count: int, created_at_ts: ?int}
+     * @return array{id: int, title: string, description: ?string, topic: ?string, keywords: ?string, school_type_id: int, school_type_slug: ?string, grade_id: ?int, subject_id: int, category_id: int, downloads_count: int, views_count: int, created_at_ts: ?int}
      */
     public function toSearchableArray(): array
     {
@@ -45,6 +45,7 @@ class Document extends Model
             'topic' => $this->topic,
             'keywords' => $this->keywords,
             'school_type_id' => $this->school_type_id,
+            'school_type_slug' => $this->schoolType?->slug,
             'grade_id' => $this->grade_id,
             'subject_id' => $this->subject_id,
             'category_id' => $this->category_id,

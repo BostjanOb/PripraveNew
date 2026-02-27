@@ -7,9 +7,115 @@ use App\Models\Grade;
 use App\Models\SchoolType;
 use App\Models\Subject;
 use App\Models\User;
+use App\Services\Browse\BrowseSearchInput;
+use App\Services\Browse\BrowseSearchResult;
+use App\Services\Browse\BrowseSearchService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+
+beforeEach(function () {
+    app()->bind(BrowseSearchService::class, FakeBrowseSearchService::class);
+});
+
+final class FakeBrowseSearchService implements BrowseSearchService
+{
+    public function search(BrowseSearchInput $input): BrowseSearchResult
+    {
+        $query = $this->baseQuery($input);
+        $this->applySorting($query, $input->sort);
+
+        $totalHits = $query->count();
+        $totalPages = max(1, (int) ceil($totalHits / $input->hitsPerPage));
+        $documents = $query
+            ->skip(($input->page - 1) * $input->hitsPerPage)
+            ->take($input->hitsPerPage)
+            ->get();
+
+        return new BrowseSearchResult(
+            documents: $documents,
+            totalHits: $totalHits,
+            totalPages: $totalPages,
+            currentPage: $input->page,
+            facetCounts: $this->facetCounts($input),
+        );
+    }
+
+    private function applySorting(Builder $query, string $sort): void
+    {
+        match ($sort) {
+            'oldest' => $query->oldest(),
+            'most-downloaded' => $query->orderByDesc('downloads_count'),
+            'most-viewed' => $query->orderByDesc('views_count'),
+            default => $query->latest(),
+        };
+    }
+
+    /**
+     * @return array<string, array<int, int>>
+     */
+    private function facetCounts(BrowseSearchInput $input): array
+    {
+        $counts = [];
+
+        foreach (['school_type_id', 'grade_id', 'subject_id', 'category_id'] as $facetKey) {
+            $query = $this->baseQuery($input, $this->isSelectedFacet($input, $facetKey) ? $facetKey : null);
+
+            if ($facetKey !== 'school_type_id') {
+                $query->whereNotNull($facetKey);
+            }
+
+            $counts[$facetKey] = $query
+                ->selectRaw("{$facetKey}, COUNT(*) as aggregate")
+                ->groupBy($facetKey)
+                ->pluck('aggregate', $facetKey)
+                ->map(fn (int|string $count): int => (int) $count)
+                ->all();
+        }
+
+        return $counts;
+    }
+
+    private function isSelectedFacet(BrowseSearchInput $input, string $facetKey): bool
+    {
+        return match ($facetKey) {
+            'school_type_id' => $input->schoolTypeId !== null,
+            'grade_id' => $input->gradeId !== null,
+            'subject_id' => $input->subjectId !== null,
+            'category_id' => $input->categoryIds !== [],
+            default => false,
+        };
+    }
+
+    private function baseQuery(BrowseSearchInput $input, ?string $excludeFacet = null): Builder
+    {
+        $query = Document::query()->with(['user', 'schoolType', 'grade', 'subject', 'category']);
+
+        if ($input->q !== '') {
+            $query->likeSearch($input->q);
+        }
+
+        if ($excludeFacet !== 'school_type_id' && $input->schoolTypeId !== null) {
+            $query->where('school_type_id', $input->schoolTypeId);
+        }
+
+        if ($excludeFacet !== 'grade_id' && $input->gradeId !== null) {
+            $query->where('grade_id', $input->gradeId);
+        }
+
+        if ($excludeFacet !== 'subject_id' && $input->subjectId !== null) {
+            $query->where('subject_id', $input->subjectId);
+        }
+
+        if ($excludeFacet !== 'category_id' && $input->categoryIds !== []) {
+            $query->whereIn('category_id', $input->categoryIds);
+        }
+
+        return $query;
+    }
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,7 +148,18 @@ it('renders the browse page with stopnja query param', function () {
 });
 
 it('uses alpine for subject filter search', function () {
-    Subject::factory()->create(['name' => 'Angleščina']);
+    $schoolType = SchoolType::factory()->create();
+    $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Angleščina']);
+    $category = Category::factory()->create();
+
+    Document::factory()->create([
+        'user_id' => User::factory(),
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+        'category_id' => $category->id,
+    ]);
 
     Livewire::test(BrowseDocuments::class)
         ->assertSeeHtml('x-model="query"')
@@ -138,6 +255,32 @@ it('shows facet counts while structured filters are active', function () {
         ->assertViewHas('facetCounts', function (array $facetCounts) use ($schoolTypeOs): bool {
             return ($facetCounts['school_type_id'][$schoolTypeOs->id] ?? 0) > 0;
         });
+});
+
+it('hides grade and subject options with zero results', function () {
+    $schoolType = SchoolType::factory()->create(['slug' => 'os']);
+
+    $visibleGrade = Grade::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Vidni razred']);
+    $hiddenGrade = Grade::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Skriti razred']);
+
+    $visibleSubject = Subject::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Vidni predmet']);
+    $hiddenSubject = Subject::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Skriti predmet']);
+
+    $category = Category::factory()->create();
+
+    Document::factory()->create([
+        'user_id' => User::factory(),
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $visibleGrade->id,
+        'subject_id' => $visibleSubject->id,
+        'category_id' => $category->id,
+    ]);
+
+    Livewire::test(BrowseDocuments::class)
+        ->assertSee('Vidni razred')
+        ->assertDontSee('Skriti razred')
+        ->assertSee('Vidni predmet')
+        ->assertDontSee('Skriti predmet');
 });
 
 it('filters by grade', function () {
@@ -334,13 +477,13 @@ it('allows changing sort order', function () {
 
 // ── Pagination ───────────────────────────────────────────────────────────────
 
-it('paginates results at 10 per page', function () {
+it('paginates results at 20 per page', function () {
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
     $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
     $category = Category::factory()->create();
 
-    Document::factory()->count(15)->create([
+    Document::factory()->count(30)->create([
         'user_id' => User::factory(),
         'school_type_id' => $schoolType->id,
         'grade_id' => $grade->id,
@@ -349,8 +492,11 @@ it('paginates results at 10 per page', function () {
     ]);
 
     Livewire::test(BrowseDocuments::class)
-        ->assertViewHas('totalPages', 2)
-        ->assertViewHas('currentPage', 1);
+        ->assertViewHas('documents', function (mixed $documents): bool {
+            return $documents instanceof LengthAwarePaginator
+                && $documents->lastPage() === 2
+                && $documents->currentPage() === 1;
+        });
 });
 
 it('navigates to a specific page', function () {
@@ -359,7 +505,7 @@ it('navigates to a specific page', function () {
     $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
     $category = Category::factory()->create();
 
-    Document::factory()->count(25)->create([
+    Document::factory()->count(50)->create([
         'user_id' => User::factory(),
         'school_type_id' => $schoolType->id,
         'grade_id' => $grade->id,
@@ -369,7 +515,7 @@ it('navigates to a specific page', function () {
 
     Livewire::test(BrowseDocuments::class)
         ->call('setPage', 2)
-        ->assertSet('page', 2);
+        ->assertSet('paginators.page', 2);
 });
 
 // ── URL persistence ──────────────────────────────────────────────────────────

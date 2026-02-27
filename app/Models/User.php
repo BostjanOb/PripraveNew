@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasSlug, Notifiable;
@@ -34,6 +36,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->role === 'admin';
     }
 
     public function documents(): HasMany

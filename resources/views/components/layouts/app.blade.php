@@ -97,6 +97,11 @@
                             <flux:navmenu.item href="{{ route('profile.edit') }}" icon="icon-regular.cog">
                                 Uredi profil
                             </flux:navmenu.item>
+                            @if (auth()->user()->role === 'admin')
+                                <flux:navmenu.item href="{{ url('/admin') }}" icon="icon-regular.shield-check">
+                                    Admin panel
+                                </flux:navmenu.item>
+                            @endif
                             <flux:navmenu.separator />
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

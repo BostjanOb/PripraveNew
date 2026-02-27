@@ -3,6 +3,7 @@
 use App\Livewire\LatestDocuments;
 use App\Models\Document;
 use App\Models\SchoolType;
+use App\Models\User;
 use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -49,6 +50,27 @@ it('displays the stats section', function () {
 
     $this->get(route('home'))
         ->assertSee('Skupnost, ki raste');
+});
+
+it('shows admin panel link in user dropdown for admin users', function () {
+    SchoolType::factory()->count(3)->create();
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    $this->actingAs($admin)
+        ->get(route('home'))
+        ->assertSuccessful()
+        ->assertSee('Admin panel')
+        ->assertSee('href="'.url('/admin').'"', false);
+});
+
+it('does not show admin panel link in user dropdown for non-admin users', function () {
+    SchoolType::factory()->count(3)->create();
+    $user = User::factory()->create(['role' => 'user']);
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertSuccessful()
+        ->assertDontSee('Admin panel');
 });
 
 // ── LatestDocuments Livewire component ────────────────────────────────────────
