@@ -1,5 +1,4 @@
 @props(['documentCount' => 0])
-
 <section class="relative overflow-hidden px-4 pb-10 pt-10 md:pb-10.5 md:pt-10.5">
     {{-- Square grid notebook background --}}
     <div class="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -18,7 +17,7 @@
             <div class="mb-4 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 dark:border-amber-800 dark:bg-amber-950/50">
                 <x-icon-regular.sparkles class="size-3.5 text-amber-500" />
                 <span class="text-xs font-semibold text-amber-700 dark:text-amber-300">
-                    Več kot {{ number_format($documentCount, 0, ',', '.') }} učnih priprav
+                    Več kot {{ \Illuminate\Support\Number::format($documentCount) }} gradiv
                 </span>
             </div>
 
@@ -27,7 +26,7 @@
                 <span class="bg-linear-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">hitro najdi</span> in prenesi.
             </h1>
             <p class="mt-4 text-pretty text-base text-muted-foreground md:text-lg">
-                Učne priprave za predšolsko vzgojo, osnovno in srednjo šolo na enem mestu.
+                Učna gradiva (priprave, vaje, ...) za predšolsko vzgojo, osnovno in srednjo šolo na enem mestu.
             </p>
 
             <form action="{{ route('browse') }}" method="GET" class="mt-8">
@@ -37,7 +36,7 @@
                         <input
                             type="text"
                             name="q"
-                            placeholder="Išči priprave, npr. matematika 2. razred..."
+                            placeholder="Išči gradiva, npr. matematika 2. razred..."
                             class="h-14 flex-1 bg-transparent px-3 text-base text-foreground placeholder:text-muted-foreground focus:outline-none"
                         />
                         <button
@@ -79,7 +78,7 @@
                 alt=""
                 width="380"
                 height="300"
-                class="w-[300px] drop-shadow-md xl:w-[360px]"
+                class="w-75 drop-shadow-md xl:w-90"
             />
         </div>
     </div>
