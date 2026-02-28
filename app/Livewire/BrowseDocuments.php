@@ -127,7 +127,7 @@ class BrowseDocuments extends Component
             ->orderBy('grades.name')
             ->get();
 
-        $subjects = Subject::when($schoolTypeId, fn ($q) => $q->where('school_type_id', $schoolTypeId))
+        $subjects = Subject::when($schoolTypeId, fn ($query) => $query->forSchoolType($schoolTypeId))
             ->orderBy('name')
             ->get();
 

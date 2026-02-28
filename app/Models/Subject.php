@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
@@ -14,9 +14,9 @@ class Subject extends Model
     /** @use HasFactory<\Database\Factories\SubjectFactory> */
     use HasFactory;
 
-    public function schoolType(): BelongsTo
+    public function schoolTypes(): BelongsToMany
     {
-        return $this->belongsTo(SchoolType::class);
+        return $this->belongsToMany(SchoolType::class)->withTimestamps();
     }
 
     public function documents(): HasMany
@@ -27,6 +27,9 @@ class Subject extends Model
     #[Scope]
     public function forSchoolType(Builder $query, int $schoolTypeId): Builder
     {
-        return $query->where('school_type_id', $schoolTypeId);
+        return $query->whereHas(
+            'schoolTypes',
+            fn (Builder $schoolTypesQuery): Builder => $schoolTypesQuery->whereKey($schoolTypeId),
+        );
     }
 }

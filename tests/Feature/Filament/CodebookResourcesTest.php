@@ -100,19 +100,19 @@ it('creates and updates a subject', function () {
 
     Livewire::test(ManageSubjects::class)
         ->callAction(TestAction::make(CreateAction::class), data: [
-            'school_type_id' => $schoolType->id,
+            'schoolTypes' => [$schoolType->id],
             'name' => 'Kemija',
         ])
         ->assertNotified();
 
     $subject = Subject::query()
-        ->where('school_type_id', $schoolType->id)
+        ->whereHas('schoolTypes', fn ($query) => $query->whereKey($schoolType->id))
         ->where('name', 'Kemija')
         ->firstOrFail();
 
     Livewire::test(ManageSubjects::class)
         ->callAction(TestAction::make(EditAction::class)->table($subject), data: [
-            'school_type_id' => $schoolType->id,
+            'schoolTypes' => [$schoolType->id],
             'name' => 'Biologija',
         ])
         ->assertNotified();

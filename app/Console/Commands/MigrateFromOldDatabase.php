@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class MigrateFromOldDatabase extends Command
 {
@@ -24,6 +25,9 @@ class MigrateFromOldDatabase extends Command
 
     /** @var array<string, int> key: "{predmetId}:{solaId}" */
     private array $subjectMap = [];
+
+    /** @var array<string, int> key: normalized subject name */
+    private array $subjectNameMap = [];
 
     /** @var array<string, int> key: "{vrsta}:{novaVrsta}" */
     private array $categoryMap = [];
@@ -69,7 +73,7 @@ class MigrateFromOldDatabase extends Command
     {
         $this->info('Truncating destination tables...');
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        Schema::disableForeignKeyConstraints();
 
         foreach ([
             'download_records',
@@ -78,6 +82,7 @@ class MigrateFromOldDatabase extends Command
             'document_files',
             'documents',
             'users',
+            'school_type_subject',
             'subjects',
             'grades',
             'school_types',
@@ -86,7 +91,7 @@ class MigrateFromOldDatabase extends Command
             DB::table($table)->truncate();
         }
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        Schema::enableForeignKeyConstraints();
 
         $this->info('Tables truncated.');
     }
@@ -238,6 +243,14 @@ class MigrateFromOldDatabase extends Command
 
         $now = now();
         $count = 0;
+        $pivotCount = 0;
+
+        DB::table('subjects')
+            ->select('id', 'name')
+            ->orderBy('id')
+            ->each(function (object $subject): void {
+                $this->subjectNameMap[$this->normalizeSubjectName((string) $subject->name)] = (int) $subject->id;
+            });
 
         foreach ($rows as $row) {
             $schoolTypeId = $this->schoolTypeMap[$row->solaId] ?? null;
@@ -252,29 +265,40 @@ class MigrateFromOldDatabase extends Command
                 continue;
             }
 
-            $existing = DB::table('subjects')
-                ->where('name', $row->predmetIme)
-                ->where('school_type_id', $schoolTypeId)
-                ->value('id');
+            $subjectName = trim((string) $row->predmetIme);
 
-            if ($existing) {
-                $this->subjectMap[$mapKey] = $existing;
+            if ($subjectName === '') {
+                $this->warn("Subject {$row->predmetId}: empty name, skipping.");
 
                 continue;
             }
 
-            $id = DB::table('subjects')->insertGetId([
+            $normalizedSubjectName = $this->normalizeSubjectName($subjectName);
+
+            if (isset($this->subjectNameMap[$normalizedSubjectName])) {
+                $id = $this->subjectNameMap[$normalizedSubjectName];
+            } else {
+                $id = DB::table('subjects')->insertGetId([
+                    'name' => $subjectName,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $this->subjectNameMap[$normalizedSubjectName] = $id;
+
+                $count++;
+            }
+
+            $pivotCount += DB::table('school_type_subject')->insertOrIgnore([
                 'school_type_id' => $schoolTypeId,
-                'name' => $row->predmetIme,
+                'subject_id' => $id,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
 
             $this->subjectMap[$mapKey] = $id;
-            $count++;
         }
 
-        $this->info("Subjects: {$count} migrated.");
+        $this->info("Subjects: {$count} migrated. Pivot links: {$pivotCount} synced.");
     }
 
     // -------------------------------------------------------------------------
@@ -447,6 +471,11 @@ class MigrateFromOldDatabase extends Command
         }
 
         return $slug.'-'.$id;
+    }
+
+    private function normalizeSubjectName(string $subjectName): string
+    {
+        return mb_strtolower(trim($subjectName), 'UTF-8');
     }
 
     // -------------------------------------------------------------------------

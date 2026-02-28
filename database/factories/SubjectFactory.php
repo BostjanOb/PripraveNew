@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\SchoolType;
+use App\Models\Subject;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -14,7 +15,14 @@ class SubjectFactory extends Factory
     {
         return [
             'name' => fake()->unique()->word(),
-            'school_type_id' => SchoolType::factory(),
         ];
+    }
+
+    public function forSchoolType(SchoolType|int $schoolType): static
+    {
+        return $this->afterCreating(function (Subject $subject) use ($schoolType): void {
+            $schoolTypeId = $schoolType instanceof SchoolType ? $schoolType->id : $schoolType;
+            $subject->schoolTypes()->syncWithoutDetaching([(int) $schoolTypeId]);
+        });
     }
 }

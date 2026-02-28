@@ -45,7 +45,7 @@ it('creates a document with priprava category', function () {
     $priprava = Category::factory()->create(['id' => 1, 'name' => 'Priprava', 'slug' => 'priprava']);
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
 
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
@@ -93,7 +93,7 @@ it('creates a document with ostalo category', function () {
     $subcategory = Category::factory()->create(['parent_id' => 2, 'name' => 'Učni list', 'slug' => 'ucni-list']);
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
 
     $file = UploadedFile::fake()->create('dokument.docx', 500, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
@@ -141,7 +141,7 @@ it('creates a new subject via createSubject action', function () {
 
     $subject = Subject::query()->where('name', 'Novi predmet za test')->first();
     expect($subject)->not->toBeNull()
-        ->and($subject->school_type_id)->toBe($schoolType->id);
+        ->and($subject->schoolTypes()->whereKey($schoolType->id)->exists())->toBeTrue();
 
     $document = Document::query()->where('title', 'Priprava z novim predmetom')->first();
     expect($document->subject_id)->toBe($subject->id);
@@ -153,7 +153,7 @@ it('requires title and files', function () {
     $user = User::factory()->create();
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
@@ -171,7 +171,7 @@ it('requires ostaloCategory when categoryType is ostalo', function () {
     $user = User::factory()->create();
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
 
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
@@ -204,11 +204,32 @@ it('requires school type and grade', function () {
         ->assertHasErrors(['schoolTypeId' => 'required', 'gradeId' => 'required']);
 });
 
+it('rejects subject that is not linked to selected school type', function () {
+    $user = User::factory()->create();
+    $schoolType = SchoolType::factory()->create();
+    $otherSchoolType = SchoolType::factory()->create();
+    $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($otherSchoolType)->create();
+
+    $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
+
+    Livewire::actingAs($user)
+        ->test(\App\Livewire\CreateDocument::class)
+        ->set('categoryType', 'priprava')
+        ->set('schoolTypeId', (string) $schoolType->id)
+        ->set('gradeId', (string) $grade->id)
+        ->set('subjectId', (string) $subject->id)
+        ->set('title', 'Test')
+        ->set('files', [$file])
+        ->call('submit')
+        ->assertHasErrors(['subjectId']);
+});
+
 it('rejects files with invalid extensions', function () {
     $user = User::factory()->create();
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
 
     $file = UploadedFile::fake()->create('malware.exe', 1024);
 
@@ -233,7 +254,7 @@ it('generates unique slugs', function () {
     Category::factory()->create(['id' => 1, 'name' => 'Priprava', 'slug' => 'priprava']);
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
 
     // Create existing document with slug
     Document::factory()->create(['slug' => 'isti-naslov', 'title' => 'Isti naslov']);

@@ -73,7 +73,7 @@ it('creates and updates a document', function () {
     $category = Category::factory()->create();
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
 
     Livewire::test(ManageDocuments::class)
         ->callAction(TestAction::make(CreateAction::class), data: [

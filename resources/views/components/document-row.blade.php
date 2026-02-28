@@ -17,7 +17,7 @@
     $schoolTypeLabel = [
         'pv' => 'PV',
         'os' => 'OS',
-        'ss' => 'SS',
+        'ss' => 'SŠ',
     ];
 
     $categorySlug = $document->category?->slug ?? 'priprava';

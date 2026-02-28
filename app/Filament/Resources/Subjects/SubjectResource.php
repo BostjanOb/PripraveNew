@@ -38,9 +38,10 @@ class SubjectResource extends Resource
     {
         return $schema
             ->components([
-                Select::make('school_type_id')
-                    ->label('Tip šole')
-                    ->relationship('schoolType', 'name')
+                Select::make('schoolTypes')
+                    ->label('Tipi šol')
+                    ->relationship('schoolTypes', 'name')
+                    ->multiple()
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -55,10 +56,10 @@ class SubjectResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('schoolType.name')
-                    ->label('Tip šole')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('schoolTypes.name')
+                    ->label('Tipi šol')
+                    ->listWithLineBreaks()
+                    ->searchable(),
                 TextColumn::make('name')
                     ->label('Naziv')
                     ->searchable()

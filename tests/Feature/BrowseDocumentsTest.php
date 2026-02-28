@@ -123,7 +123,7 @@ function createDocumentWithRelations(array $overrides = []): Document
 {
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
     $category = Category::factory()->create();
 
     return Document::factory()->create(array_merge([
@@ -150,7 +150,7 @@ it('renders the browse page with stopnja query param', function () {
 it('uses alpine for subject filter search', function () {
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Angleščina']);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create(['name' => 'Angleščina']);
     $category = Category::factory()->create();
 
     Document::factory()->create([
@@ -197,9 +197,9 @@ it('filters by school type from stopnja query param using school type slug', fun
     $osSchoolType = SchoolType::factory()->create(['slug' => 'os']);
 
     $pvGrade = Grade::factory()->create(['school_type_id' => $pvSchoolType->id]);
-    $pvSubject = Subject::factory()->create(['school_type_id' => $pvSchoolType->id]);
+    $pvSubject = Subject::factory()->forSchoolType($pvSchoolType)->create();
     $osGrade = Grade::factory()->create(['school_type_id' => $osSchoolType->id]);
-    $osSubject = Subject::factory()->create(['school_type_id' => $osSchoolType->id]);
+    $osSubject = Subject::factory()->forSchoolType($osSchoolType)->create();
     $category = Category::factory()->create();
 
     Document::factory()->create([
@@ -230,7 +230,7 @@ it('shows facet counts while structured filters are active', function () {
     $schoolTypeOs = SchoolType::factory()->create(['slug' => 'os']);
     $schoolTypeSs = SchoolType::factory()->create(['slug' => 'ss']);
     $grade = Grade::factory()->create(['school_type_id' => $schoolTypeOs->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolTypeOs->id]);
+    $subject = Subject::factory()->forSchoolType($schoolTypeOs)->create();
     $category = Category::factory()->create();
 
     Document::factory()->create([
@@ -245,7 +245,7 @@ it('shows facet counts while structured filters are active', function () {
         'user_id' => User::factory(),
         'school_type_id' => $schoolTypeSs->id,
         'grade_id' => Grade::factory()->create(['school_type_id' => $schoolTypeSs->id])->id,
-        'subject_id' => Subject::factory()->create(['school_type_id' => $schoolTypeSs->id])->id,
+        'subject_id' => Subject::factory()->forSchoolType($schoolTypeSs)->create()->id,
         'category_id' => Category::factory()->create()->id,
     ]);
 
@@ -263,8 +263,8 @@ it('hides grade and subject options with zero results', function () {
     $visibleGrade = Grade::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Vidni razred']);
     $hiddenGrade = Grade::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Skriti razred']);
 
-    $visibleSubject = Subject::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Vidni predmet']);
-    $hiddenSubject = Subject::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Skriti predmet']);
+    $visibleSubject = Subject::factory()->forSchoolType($schoolType)->create(['name' => 'Vidni predmet']);
+    $hiddenSubject = Subject::factory()->forSchoolType($schoolType)->create(['name' => 'Skriti predmet']);
 
     $category = Category::factory()->create();
 
@@ -287,7 +287,7 @@ it('filters by grade', function () {
     $schoolType = SchoolType::factory()->create(['slug' => 'os']);
     $grade1 = Grade::factory()->create(['school_type_id' => $schoolType->id, 'name' => '1. razred']);
     $grade2 = Grade::factory()->create(['school_type_id' => $schoolType->id, 'name' => '2. razred']);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
     $category = Category::factory()->create();
 
     Document::factory()->create([
@@ -348,8 +348,8 @@ it('orders grades by school type sort order', function () {
 
 it('filters by subject', function () {
     $schoolType = SchoolType::factory()->create(['slug' => 'os']);
-    $subject1 = Subject::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Matematika']);
-    $subject2 = Subject::factory()->create(['school_type_id' => $schoolType->id, 'name' => 'Slovenščina']);
+    $subject1 = Subject::factory()->forSchoolType($schoolType)->create(['name' => 'Matematika']);
+    $subject2 = Subject::factory()->forSchoolType($schoolType)->create(['name' => 'Slovenščina']);
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
     $category = Category::factory()->create();
 
@@ -438,7 +438,7 @@ it('resets grade and subject when school type changes', function () {
     $st1 = SchoolType::factory()->create(['slug' => 'os']);
     $st2 = SchoolType::factory()->create(['slug' => 'ss']);
     $grade = Grade::factory()->create(['school_type_id' => $st1->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $st1->id]);
+    $subject = Subject::factory()->forSchoolType($st1)->create();
 
     Livewire::test(BrowseDocuments::class)
         ->call('setSchoolType', 'os')
@@ -480,7 +480,7 @@ it('allows changing sort order', function () {
 it('paginates results at 20 per page', function () {
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
     $category = Category::factory()->create();
 
     Document::factory()->count(30)->create([
@@ -502,7 +502,7 @@ it('paginates results at 20 per page', function () {
 it('navigates to a specific page', function () {
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
-    $subject = Subject::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
     $category = Category::factory()->create();
 
     Document::factory()->count(50)->create([

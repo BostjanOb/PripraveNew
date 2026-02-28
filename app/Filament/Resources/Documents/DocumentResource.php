@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Documents;
 
 use App\Filament\Resources\Documents\Pages\ManageDocuments;
 use App\Models\Document;
+use App\Models\Subject;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -17,6 +18,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -61,6 +64,10 @@ class DocumentResource extends Resource
                 Select::make('school_type_id')
                     ->label('Tip šole')
                     ->relationship('schoolType', 'name')
+                    ->live()
+                    ->afterStateUpdated(function (Set $set): void {
+                        $set('subject_id', null);
+                    })
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -71,7 +78,16 @@ class DocumentResource extends Resource
                     ->preload(),
                 Select::make('subject_id')
                     ->label('Predmet')
-                    ->relationship('subject', 'name')
+                    ->options(
+                        fn (Get $get): array => Subject::query()
+                            ->when(
+                                $get('school_type_id'),
+                                fn ($query, $schoolTypeId) => $query->forSchoolType((int) $schoolTypeId),
+                            )
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->all(),
+                    )
                     ->searchable()
                     ->preload()
                     ->required(),

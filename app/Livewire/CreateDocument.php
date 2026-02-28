@@ -8,8 +8,10 @@ use App\Models\DocumentFile;
 use App\Models\Grade;
 use App\Models\SchoolType;
 use App\Models\Subject;
+use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -70,7 +72,24 @@ class CreateDocument extends Component
             'ostaloCategory' => ['required_if:categoryType,ostalo', 'nullable', 'exists:categories,id'],
             'schoolTypeId' => ['required', 'exists:school_types,id'],
             'gradeId' => ['required', 'exists:grades,id'],
-            'subjectId' => ['required', 'exists:subjects,id'],
+            'subjectId' => [
+                'required',
+                Rule::exists('subjects', 'id'),
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if (! $this->schoolTypeId) {
+                        return;
+                    }
+
+                    $subjectBelongsToSchoolType = Subject::query()
+                        ->whereKey((int) $value)
+                        ->forSchoolType((int) $this->schoolTypeId)
+                        ->exists();
+
+                    if (! $subjectBelongsToSchoolType) {
+                        $fail('Izbran predmet ne pripada izbranemu tipu šole.');
+                    }
+                },
+            ],
             'title' => ['required', 'max:200'],
             'topic' => ['nullable', 'max:200'],
             'keywords' => ['nullable', 'max:500'],
@@ -153,9 +172,10 @@ class CreateDocument extends Component
             'schoolTypeId' => ['required', 'exists:school_types,id'],
         ]);
 
-        $subject = Subject::firstOrCreate(
-            ['name' => $this->subjectSearch, 'school_type_id' => (int) $this->schoolTypeId],
+        $subject = Subject::query()->firstOrCreate(
+            ['name' => trim($this->subjectSearch)],
         );
+        $subject->schoolTypes()->syncWithoutDetaching([(int) $this->schoolTypeId]);
 
         $this->subjectId = (string) $subject->id;
         $this->subjectSearch = '';
