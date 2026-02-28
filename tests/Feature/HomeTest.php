@@ -17,6 +17,19 @@ it('loads the homepage successfully', function () {
         ->assertSuccessful();
 });
 
+it('uses flux appearance controls for dark mode', function () {
+    SchoolType::factory()->count(3)->create();
+
+    $this->get(route('home'))
+        ->assertSuccessful()
+        ->assertSee("\$flux.appearance = 'light'", false)
+        ->assertSee("\$flux.appearance = 'dark'", false)
+        ->assertSee("\$flux.appearance = 'system'", false)
+        ->assertDontSee("localStorage.getItem('dark')", false)
+        ->assertDontSee("localStorage.setItem('dark'", false)
+        ->assertDontSee('isDark = !isDark', false);
+});
+
 it('displays the hero search section', function () {
     SchoolType::factory()->count(3)->create();
 

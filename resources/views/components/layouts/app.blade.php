@@ -3,12 +3,7 @@
     'mainClass' => 'flex-1'
 ])
 <!DOCTYPE html>
-<html
-    lang="sl"
-    x-data="{ isDark: localStorage.getItem('dark') === 'true', mobileOpen: false }"
-    :class="{ 'dark': isDark }"
-    x-init="$watch('isDark', v => localStorage.setItem('dark', v))"
->
+<html lang="sl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,7 +19,7 @@
 <body class="font-sans antialiased min-h-screen flex flex-col">
 
     {{-- Header --}}
-    <header class="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
+    <header x-data="{ mobileOpen: false }" class="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
         <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
 
             {{-- Logo --}}
@@ -57,20 +52,25 @@
             {{-- Desktop actions --}}
             <div class="hidden items-center gap-2 md:flex">
                 {{-- Dark mode toggle --}}
-                <flux:button
-                    variant="ghost"
-                    square
-                    @click="isDark = !isDark"
-                    ::aria-label="isDark ? 'Preklopi na svetli način' : 'Preklopi na temni način'"
-                    class="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                >
-                    <template x-if="isDark">
-                        <x-icon-regular.sun-alt class="size-3.5" />
-                    </template>
-                    <template x-if="!isDark">
-                        <x-icon-regular.moon class="size-3.5 -rotate-12" />
-                    </template>
-                </flux:button>
+                <flux:dropdown x-data x-cloak position="bottom" align="end">
+                    <flux:button
+                        variant="ghost"
+                        square
+                        aria-label="Barvna shema"
+                        class="group flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
+                        <flux:icon.sun x-show="$flux.appearance === 'light'" variant="mini" />
+                        <flux:icon.moon x-show="$flux.appearance === 'dark'" variant="mini" />
+                        <flux:icon.moon x-show="$flux.appearance === 'system' && $flux.dark" variant="mini" />
+                        <flux:icon.sun x-show="$flux.appearance === 'system' && ! $flux.dark" variant="mini" />
+                    </flux:button>
+
+                    <flux:menu>
+                        <flux:menu.item icon="sun" x-on:click="$flux.appearance = 'light'">Svetli</flux:menu.item>
+                        <flux:menu.item icon="moon" x-on:click="$flux.appearance = 'dark'">Temni</flux:menu.item>
+                        <flux:menu.item icon="computer-desktop" x-on:click="$flux.appearance = 'system'">Sistemski</flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
 
                 <flux:button as="a" href="{{ url('/dodajanje') }}" 
                     variant="outline" 
@@ -155,23 +155,11 @@
                 </a>
             </nav>
             <div class="mt-3 flex flex-col gap-2">
-                <flux:button
-                    variant="ghost"
-                    @click="isDark = !isDark"
-                    class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
-                >
-                    <template x-if="isDark">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-                        </svg>
-                    </template>
-                    <template x-if="!isDark">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-                        </svg>
-                    </template>
-                    <span x-text="isDark ? 'Svetli način' : 'Temni način'"></span>
-                </flux:button>
+                <flux:radio.group x-data variant="segmented" x-model="$flux.appearance" class="w-full">
+                    <flux:radio value="light" icon="sun">Svetli</flux:radio>
+                    <flux:radio value="dark" icon="moon">Temni</flux:radio>
+                    <flux:radio value="system" icon="computer-desktop">Sistemski</flux:radio>
+                </flux:radio.group>
 
                 <flux:button as="a" href="{{ url('/dodajanje') }}" variant="outline" size="sm" class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 !py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
