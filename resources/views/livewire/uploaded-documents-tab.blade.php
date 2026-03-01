@@ -25,7 +25,7 @@
     @else
         <div class="space-y-3">
             @foreach($documents as $document)
-                <x-document-row :$document :showActions="true" />
+                <x-document-row :$document :showActions="true" wire:key="uploaded-document-{{ $document->id }}" />
             @endforeach
         </div>
 

@@ -2,19 +2,6 @@ Project Review Report
 
 High Priority
 
-2. Missing wire:key on @foreach loops
-
-Livewire DOM diffing issues possible in:
-- uploaded-documents-tab.blade.php:32
-- downloaded-documents-tab.blade.php:12
-- saved-documents-tab.blade.php:12
-- latest-documents.blade.php:99
-
-3. Scattered auth checks instead of Policies
-
-DocumentController and UploadedDocumentsTab use raw auth()->id() comparisons
-instead of Laravel Policies/Gates.
-
 4. Badge threshold duplication
 
 DocumentController::getAuthorBadgeId() duplicates thresholds already in

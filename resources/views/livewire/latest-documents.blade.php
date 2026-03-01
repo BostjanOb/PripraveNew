@@ -45,6 +45,7 @@
                             $fs = $schoolTypeConfig[$st->slug] ?? $schoolTypeConfig['os'];
                         @endphp
                         <button
+                            wire:key="school-type-{{ $st->slug }}"
                             wire:click="setActiveType('{{ $st->slug }}')"
                             @class([
                                 'flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all',
@@ -72,7 +73,7 @@
             {{-- Document list --}}
             <div class="space-y-2" wire:loading.class="opacity-50" wire:target="setActiveType">
                 @forelse ($documents as $document)
-                    <x-document-row :$document />
+                    <x-document-row :$document wire:key="latest-document-{{ $document->id }}" />
                 @empty
                     <div class="rounded-2xl border-2 border-dashed border-muted bg-background py-16 text-center">
                         <x-icon-regular.file-lines  class="mx-auto size-12 text-muted-foreground/40" />

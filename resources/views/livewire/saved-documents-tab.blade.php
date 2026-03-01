@@ -8,7 +8,7 @@
     @else
         <div class="space-y-3">
             @foreach($documents as $document)
-                <x-document-row :$document />
+                <x-document-row :$document wire:key="saved-document-{{ $document->id }}" />
             @endforeach
         </div>
 
