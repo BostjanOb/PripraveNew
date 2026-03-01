@@ -2,6 +2,7 @@
 
 use App\Models\Comment;
 use App\Models\Document;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 new class extends Component
@@ -48,10 +49,13 @@ new class extends Component
 
         $comment = Comment::find($commentId);
 
-        if ($comment && $comment->user_id === $user->id) {
-            $comment->delete();
-            $this->document->load(['comments' => fn ($q) => $q->with('user')->latest()]);
+        if (! $comment) {
+            return;
         }
+
+        Gate::authorize('delete', $comment);
+        $comment->delete();
+        $this->document->load(['comments' => fn ($q) => $q->with('user')->latest()]);
     }
 };
 ?>
@@ -72,7 +76,7 @@ new class extends Component
                     <div class="flex items-center gap-2 text-sm">
                         <span class="font-semibold text-foreground">{{ $comment->user?->display_name }}</span>
                         <span class="text-xs text-muted-foreground">{{ $comment->created_at->format('d.m.Y H:i') }}</span>
-                        @if(auth()->id() === $comment->user_id)
+                        @can('delete', $comment)
                             <button
                                 wire:click="deleteComment({{ $comment->id }})"
                                 wire:confirm="Ali ste prepričani, da želite izbrisati ta komentar?"
@@ -81,7 +85,7 @@ new class extends Component
                             >
                                 <x-icon-regular.trash-can  class="size-3.5"/>
                             </button>
-                        @endif
+                        @endcan
                     </div>
                     <p class="mt-1 text-sm text-muted-foreground">{{ $comment->text }}</p>
                 </div>

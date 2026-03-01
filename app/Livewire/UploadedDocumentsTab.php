@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Document;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -21,10 +22,7 @@ class UploadedDocumentsTab extends Component
     public function deleteDocument(int $id): void
     {
         $document = Document::findOrFail($id);
-
-        if ($document->user_id !== auth()->id()) {
-            abort(403);
-        }
+        Gate::authorize('delete', $document);
 
         $document->delete();
     }

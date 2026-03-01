@@ -242,7 +242,7 @@
                             <livewire:document.report-modal :$document />
                         </div>
 
-                        @if($isOwner)
+                        @can('update', $document)
                             <div class="mt-3 grid grid-cols-2 gap-2">
                                 <a href="{{ url('/dodajanje?uredi=' . $document->id) }}"
                                    class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-800 dark:bg-background dark:text-emerald-300 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-200">
@@ -258,7 +258,7 @@
                                     </button>
                                 </form>
                             </div>
-                        @endif
+                        @endcan
                     @else
                         <a href="{{ route('login') }}" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                             <x-icon-regular.arrow-right-from-bracket class="size-5" />
@@ -307,7 +307,7 @@
                             <livewire:document.report-modal :$document context="desktop" />
                         </div>
 
-                        @if($isOwner)
+                        @can('update', $document)
                             <div class="mt-3 grid grid-cols-2 gap-2">
                                 <a href="{{ url('/dodajanje?uredi=' . $document->id) }}"
                                    class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-800 dark:bg-background dark:text-emerald-300 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-200">
@@ -323,7 +323,7 @@
                                     </button>
                                 </form>
                             </div>
-                        @endif
+                        @endcan
                     @else
                         <a href="{{ route('login') }}" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                             <x-icon-regular.download class="size-5" />

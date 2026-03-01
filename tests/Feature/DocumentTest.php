@@ -201,6 +201,18 @@ it('forbids non-owner from deleting a document', function () {
     expect($document->fresh()->deleted_at)->toBeNull();
 });
 
+it('allows admin to soft-delete a non-owned document', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create(['role' => 'admin']);
+    $document = Document::factory()->create(['user_id' => $owner->id]);
+
+    $this->actingAs($admin)
+        ->delete(route('document.destroy', $document))
+        ->assertRedirect(route('profile'));
+
+    $this->assertSoftDeleted('documents', ['id' => $document->id]);
+});
+
 // ── Save button Livewire component ──────────────────────────────────────────
 
 it('can save a document', function () {
@@ -353,6 +365,24 @@ it('can delete own comment', function () {
     expect(Comment::find($comment->id))->toBeNull();
 });
 
+it('allows admin to delete another users comment', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create(['role' => 'admin']);
+    $document = Document::factory()->create();
+    $comment = Comment::factory()->create([
+        'document_id' => $document->id,
+        'user_id' => $owner->id,
+        'text' => 'Komentar lastnika',
+    ]);
+    $document->load(['comments' => fn ($q) => $q->with('user')->latest()]);
+
+    Livewire::actingAs($admin)
+        ->test('document.comment-section', ['document' => $document])
+        ->call('deleteComment', $comment->id);
+
+    expect(Comment::find($comment->id))->toBeNull();
+});
+
 it('cannot delete another users comment', function () {
     $user = User::factory()->create();
     $other = User::factory()->create();
@@ -366,7 +396,8 @@ it('cannot delete another users comment', function () {
 
     Livewire::actingAs($user)
         ->test('document.comment-section', ['document' => $document])
-        ->call('deleteComment', $comment->id);
+        ->call('deleteComment', $comment->id)
+        ->assertForbidden();
 
     expect(Comment::find($comment->id))->not->toBeNull();
 });

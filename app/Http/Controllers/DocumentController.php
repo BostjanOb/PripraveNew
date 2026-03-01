@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\DocumentFile;
 use App\Support\BadgeRegistry;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use ZipArchive;
@@ -26,7 +26,6 @@ class DocumentController extends Controller
 
         $document->incrementViews();
 
-        $isOwner = auth()->id() === $document->user_id;
         $isSaved = auth()->check() && auth()->user()->savedDocuments()->where('document_id', $document->id)->exists();
 
         $userRating = null;
@@ -46,7 +45,6 @@ class DocumentController extends Controller
 
         return view('pages.document-show')
             ->with('document', $document)
-            ->with('isOwner', $isOwner)
             ->with('isSaved', $isSaved)
             ->with('userRating', $userRating)
             ->with('relatedDocuments', $relatedDocuments)
@@ -119,9 +117,9 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, Document $document): \Illuminate\Http\RedirectResponse
+    public function destroy(Document $document): \Illuminate\Http\RedirectResponse
     {
-        abort_unless(auth()->id() === $document->user_id, 403);
+        Gate::authorize('delete', $document);
 
         $document->delete();
 
