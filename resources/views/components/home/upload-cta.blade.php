@@ -21,22 +21,14 @@
                     <div class="absolute size-40 animate-[spin_20s_linear_infinite_reverse] rounded-full border-2 border-dashed border-orange-200/50"></div>
                     {{-- Center icon --}}
                     <div class="relative flex size-24 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-200/60">
-                        {{-- Upload icon --}}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 text-white">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                        </svg>
+                        <x-icon-regular.upload  class="size-12 text-white"/>
                     </div>
                     {{-- Floating badges --}}
                     <div class="absolute -right-2 top-4 flex size-10 items-center justify-center rounded-full bg-white shadow-md dark:bg-card">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-amber-500">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
-                        </svg>
+                        <x-icon-regular.sparkles class="size-5 text-amber-500"/>
                     </div>
                     <div class="absolute -left-2 bottom-6 flex size-10 items-center justify-center rounded-full bg-white shadow-md dark:bg-card">
-                        {{-- Heart icon --}}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-rose-400">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                        </svg>
+                        <x-icon-regular.heart class="size-5 text-rose-400"/>
                     </div>
                 </div>
             </div>
@@ -45,12 +37,12 @@
             <div class="flex-1 text-center lg:text-left">
                 <div class="mb-4 inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white/80 px-3 py-1 dark:border-orange-800 dark:bg-orange-950/50">
                     <x-icon-regular.sparkles class="size-3.5 text-orange-500" />
-                    <span class="text-xs font-semibold text-orange-700">Ta teden dodanih 47 novih priprav</span>
+                    <span class="text-xs font-semibold text-orange-700">Ta teden dodanih 47 novih gradiv</span>
                 </div>
 
                 <h2 class="font-serif text-2xl font-bold tracking-tight text-foreground md:text-3xl lg:text-4xl">
-                    Imaš pripravo?
-                    <span class="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">Deli jo s kolegi!</span>
+                    Imaš gradivo?
+                    <span class="bg-linear-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">Deli ga s kolegi!</span>
                 </h2>
 
                 <p class="mt-3 text-pretty text-base text-muted-foreground md:text-lg">
@@ -74,7 +66,7 @@
                                     <x-icon-regular.heart class="size-3.5 {{ $benefit['color'] }}" />
                                 @elseif ($benefit['icon'] === 'star')
                                     <x-icon-regular.star class="size-3.5 {{ $benefit['color'] }}" />
-                                    
+
                                 @else
                                     <x-icon-regular.users class="size-3.5 {{ $benefit['color'] }}" />
                                 @endif

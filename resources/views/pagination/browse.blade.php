@@ -3,9 +3,7 @@
         <div class="flex items-center justify-center gap-2">
             @if ($paginator->onFirstPage())
                 <span class="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground opacity-40">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                    </svg>
+                    <x-icon-regular.angle-left class="size-4" />
                 </span>
             @else
                 <button
@@ -16,9 +14,7 @@
                     class="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-all hover:border-teal-200 hover:text-foreground"
                     aria-label="@lang('pagination.previous')"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                    </svg>
+                    <x-icon-regular.angle-left class="size-4" />
                 </button>
             @endif
 
@@ -57,15 +53,11 @@
                     class="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-all hover:border-teal-200 hover:text-foreground"
                     aria-label="@lang('pagination.next')"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                    </svg>
+                    <x-icon-regular.angle-right class="size-4" />
                 </button>
             @else
                 <span class="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground opacity-40">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                    </svg>
+                    <x-icon-regular.angle-right class="size-4" />
                 </span>
             @endif
         </div>

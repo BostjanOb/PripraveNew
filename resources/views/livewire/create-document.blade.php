@@ -40,9 +40,7 @@
 
             <div class="relative mx-auto max-w-4xl px-4 py-10 text-center md:py-12">
                 <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/50">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 text-emerald-600 dark:text-emerald-300">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                    </svg>
+                    <x-icon-regular.upload  class="size-9 text-emerald-600 dark:text-emerald-300" />
                 </div>
                 <h1 class="font-serif text-3xl font-bold text-foreground md:text-4xl">Dodajanje gradiva</h1>
                 <p class="mt-3 text-base text-muted-foreground md:text-lg">
@@ -82,20 +80,14 @@
             <div class="rounded-2xl border border-border bg-card p-6 md:p-8">
                 <div class="mb-5 flex items-center gap-2">
                     <div class="flex size-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-                        {{-- Layers icon --}}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-emerald-600 dark:text-emerald-300">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3" />
-                        </svg>
+                        <x-icon-regular.layer-group  class="size-4 text-emerald-600 dark:text-emerald-300"/>
                     </div>
                     <h2 class="font-serif text-lg font-bold text-foreground">Vrsta gradiva</h2>
                 </div>
 
                 {{-- Info callout --}}
                 <div class="mb-5 flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-950/40">
-                    {{-- Info icon --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mt-0.5 size-5 shrink-0 text-sky-500 dark:text-sky-300">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                    </svg>
+                    <x-icon-regular.circle-info  class="mt-0.5 size-5 shrink-0 text-sky-500 dark:text-sky-300"/>
                     <p class="text-sm text-sky-700 dark:text-sky-200">
                         Pri določitvi vrste gradiva bodite pozorni: <strong>PRIPRAVA</strong> zajema dnevne, tedenske in letne priprave, medtem ko <strong>OSTALO</strong> vključuje učne liste, preverjanja, predstavitve in podobno.
                     </p>
@@ -196,49 +188,15 @@
                         </svg>
                         Šola
                     </label>
+                    @php
+                        $schoolTypeConfig = \App\Support\SchoolTypeUiConfig::all();
+                    @endphp
                     <div class="grid gap-2 sm:grid-cols-3">
                         @foreach($schoolTypes as $type)
                             @php
-                                $colors = match($type->id) {
-                                    1 => [
-                                        'bg' => 'bg-fuchsia-50 dark:bg-fuchsia-950/40',
-                                        'border' => 'border-fuchsia-200 dark:border-fuchsia-800',
-                                        'text' => 'text-fuchsia-700 dark:text-fuchsia-300',
-                                        'active' => 'border-fuchsia-400 bg-fuchsia-500 text-white shadow-md dark:border-fuchsia-500 dark:bg-fuchsia-600',
-                                        'check_bg' => 'bg-white/30 text-white',
-                                        'check_border' => 'border-2 border-current opacity-30',
-                                    ],
-                                    2 => [
-                                        'bg' => 'bg-teal-50 dark:bg-teal-950/40',
-                                        'border' => 'border-teal-200 dark:border-teal-800',
-                                        'text' => 'text-teal-700 dark:text-teal-300',
-                                        'active' => 'border-teal-400 bg-teal-500 text-white shadow-md dark:border-teal-500 dark:bg-teal-600',
-                                        'check_bg' => 'bg-white/30 text-white',
-                                        'check_border' => 'border-2 border-current opacity-30',
-                                    ],
-                                    3 => [
-                                        'bg' => 'bg-orange-50 dark:bg-orange-950/40',
-                                        'border' => 'border-orange-200 dark:border-orange-800',
-                                        'text' => 'text-orange-700 dark:text-orange-300',
-                                        'active' => 'border-orange-400 bg-orange-500 text-white shadow-md dark:border-orange-500 dark:bg-orange-600',
-                                        'check_bg' => 'bg-white/30 text-white',
-                                        'check_border' => 'border-2 border-current opacity-30',
-                                    ],
-                                    default => [
-                                        'bg' => 'bg-zinc-50 dark:bg-zinc-800',
-                                        'border' => 'border-zinc-200 dark:border-zinc-700',
-                                        'text' => 'text-zinc-700 dark:text-zinc-300',
-                                        'active' => 'border-zinc-400 bg-zinc-500 text-white shadow-md',
-                                        'check_bg' => 'bg-white/30 text-white',
-                                        'check_border' => 'border-2 border-current opacity-30',
-                                    ],
-                                };
-                                $iconSvg = match($type->id) {
-                                    1 => '<path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />',
-                                    2 => '<path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />',
-                                    3 => '<path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />',
-                                    default => '',
-                                };
+                                $conf = $schoolTypeConfig[$type->slug] ?? $schoolTypeConfig['os'];
+                                $colors = $conf['create'];
+                                $iconSvg = $colors['iconSvg'];
                             @endphp
                             <button
                                 type="button"
@@ -256,8 +214,8 @@
                                 </span>
                                 <div
                                     :class="schoolTypeId == {{ $type->id }}
-                                        ? '{{ $colors['check_bg'] }}'
-                                        : '{{ $colors['check_border'] }}'"
+                                        ? '{{ $colors['checkBg'] }}'
+                                        : '{{ $colors['checkBorder'] }}'"
                                     class="flex size-6 shrink-0 items-center justify-center rounded-full transition-all"
                                 >
                                     <svg x-show="schoolTypeId == {{ $type->id }}" x-cloak xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-3.5">

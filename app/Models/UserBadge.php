@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\BadgeRegistry;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,8 +30,10 @@ class UserBadge extends Model
     /**
      * @return array{id: string, name: string, description: string, icon: string}|null
      */
-    public function getDefinitionAttribute(): ?array
+    protected function definition(): Attribute
     {
-        return BadgeRegistry::find($this->badge_id);
+        return Attribute::make(
+            get: fn (): ?array => BadgeRegistry::find($this->badge_id),
+        );
     }
 }

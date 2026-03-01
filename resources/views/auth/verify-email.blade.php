@@ -4,10 +4,7 @@
 
             <div class="mb-6 flex flex-col items-center gap-4">
                 <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                    {{-- Mail icon --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8 text-primary">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    </svg>
+                    <x-icon-regular.envelope class="size-8 text-primary"/>
                 </div>
                 <div>
                     <h1 class="font-serif text-2xl font-bold text-foreground">Preverite svojo e-pošto</h1>
@@ -42,9 +39,7 @@
 
             <div class="mt-6">
                 <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                    </svg>
+                    <x-icon-regular.arrow-left class="size-3.5"/>
                     Nazaj na prijavo
                 </a>
             </div>

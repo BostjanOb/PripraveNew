@@ -5,6 +5,7 @@ namespace App\Models;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -73,24 +74,28 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(UserBadge::class);
     }
 
-    public function getInitialsAttribute(): string
+    protected function initials(): Attribute
     {
-        $words = explode(' ', trim($this->display_name));
+        return Attribute::make(
+            get: function (): string {
+                $words = explode(' ', trim((string) $this->display_name));
 
-        if (count($words) >= 2) {
-            return strtoupper(mb_substr($words[0], 0, 1).mb_substr($words[1], 0, 1));
-        }
+                if (count($words) >= 2) {
+                    return strtoupper(mb_substr($words[0], 0, 1).mb_substr($words[1], 0, 1));
+                }
 
-        return strtoupper(mb_substr($this->display_name, 0, 2));
+                return strtoupper(mb_substr((string) $this->display_name, 0, 2));
+            },
+        );
     }
 
-    public function getAvatarUrlAttribute(): ?string
+    protected function avatarUrl(): Attribute
     {
-        if ($this->avatar_path) {
-            return asset('storage/'.$this->avatar_path);
-        }
-
-        return null;
+        return Attribute::make(
+            get: fn (): ?string => $this->avatar_path
+                ? asset('storage/'.$this->avatar_path)
+                : null,
+        );
     }
 
     public function uploadCount(): int
@@ -113,7 +118,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->comments()->count();
     }
 
-    public function memberYears(): float
+    public function memberYears(): float|int
     {
         return $this->created_at
             ? $this->created_at->diffInYears(now())

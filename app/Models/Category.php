@@ -35,7 +35,8 @@ class Category extends Model
         return $query->whereNull('parent_id');
     }
 
-    public function scopeChildren(Builder $query): Builder
+    #[Scope]
+    public function isChildren(Builder $query): Builder
     {
         return $query->whereNotNull('parent_id');
     }

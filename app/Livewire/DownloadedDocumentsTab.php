@@ -18,9 +18,8 @@ class DownloadedDocumentsTab extends Component
 
         $downloadedIds = $user->downloadRecords()->pluck('document_id');
 
-        $documents = Document::query()
+        $documents = Document::whereIn('id', $downloadedIds)
             ->with(['schoolType', 'category', 'grade', 'subject', 'user'])
-            ->whereIn('id', $downloadedIds)
             ->latest()
             ->paginate(10);
 

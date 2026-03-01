@@ -15,8 +15,7 @@ class PublicUploadedDocuments extends Component
 
     public function render(): View
     {
-        $documents = Document::query()
-            ->where('user_id', $this->userId)
+        $documents = Document::where('user_id', $this->userId)
             ->with(['schoolType', 'category', 'grade', 'subject'])
             ->latest()
             ->paginate(5);

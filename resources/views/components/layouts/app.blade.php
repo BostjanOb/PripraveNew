@@ -1,5 +1,5 @@
 @props([
-    'title' => config('app.name', 'Priprave.net'), 
+    'title' => config('app.name', 'Priprave.net'),
     'mainClass' => 'flex-1'
 ])
 <!DOCTYPE html>
@@ -24,15 +24,8 @@
 
             {{-- Logo --}}
             <a href="{{ url('/') }}" class="flex items-center gap-2">
-                <div class="relative flex size-9 items-center justify-center rounded-lg bg-primary">
-                    {{-- BookOpen icon --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-primary-foreground">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                    </svg>
-                    {{-- Pencil icon accent --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute -right-1 -top-1 size-3.5 rotate-45 text-accent">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                    </svg>
+                <div class="relative flex items-center justify-center">
+                    <img src="/images/icon.png" class="h-9"/>
                 </div>
                 <span class="font-serif text-lg font-bold tracking-tight text-foreground">
                     Priprave<span class="text-primary">.net</span>
@@ -72,8 +65,8 @@
                     </flux:menu>
                 </flux:dropdown>
 
-                <flux:button as="a" href="{{ url('/dodajanje') }}" 
-                    variant="outline" 
+                <flux:button as="a" href="{{ url('/dodajanje') }}"
+                    variant="outline"
                     icon="icon-regular.plus"
                     class="h-9!">
                     Dodaj pripravo
@@ -105,14 +98,14 @@
                             <flux:navmenu.separator />
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <flux:navmenu.item as="button" 
+                                <flux:navmenu.item as="button"
                                     icon="icon-regular.arrow-right-from-bracket"
                                     type="submit">Odjava</flux:navmenu.item>
                             </form>
                         </flux:navmenu>
                     </flux:dropdown>
                 @else
-                    <flux:button as="a" href="{{ route('login') }}" 
+                    <flux:button as="a" href="{{ route('login') }}"
                         variant="primary"
                         icon="icon-regular.user"
                         class="h-9!">
@@ -130,16 +123,10 @@
                 class="flex size-9 items-center justify-center rounded-md text-muted-foreground md:hidden"
             >
                 <template x-if="mobileOpen">
-                    {{-- X icon --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
+                    <x-icon-regular.x  class="size-4"/>
                 </template>
                 <template x-if="!mobileOpen">
-                    {{-- Bars3 icon --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                    </svg>
+                    <x-icon-regular.bars class="size-4"/>
                 </template>
             </flux:button>
         </div>
@@ -162,18 +149,14 @@
                 </flux:radio.group>
 
                 <flux:button as="a" href="{{ url('/dodajanje') }}" variant="outline" size="sm" class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 !py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
+                    <x-icon-regular.plus class="size-3.5" />
                     Dodaj pripravo
                 </flux:button>
 
                 @auth
                     <a href="{{ url('/profil') }}" class="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 transition-colors hover:bg-secondary">
                         <div class="flex size-7 items-center justify-center rounded-full bg-primary/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-primary">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                            </svg>
+                            <x-icon-regular.user class="size-3.5" />
                         </div>
                         <span class="text-sm font-medium text-foreground">{{ auth()->user()->name }}</span>
                     </a>
@@ -185,9 +168,7 @@
                     </form>
                 @else
                     <flux:button as="a" href="{{ route('login') }}" variant="primary" size="sm" class="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-primary px-3 !py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                        </svg>
+                        <x-icon-regular.user class="size-3.5" />
                         Prijava
                     </flux:button>
                 @endauth
@@ -206,17 +187,15 @@
             <div class="grid gap-8 md:grid-cols-4">
                 <div>
                     <a href="{{ url('/') }}" class="flex items-center gap-2">
-                        <div class="flex size-8 items-center justify-center rounded-lg bg-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-primary-foreground">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                            </svg>
+                        <div class="flex items-center justify-center">
+                            <img src="/images/icon.png" class="h-8"/>
                         </div>
                         <span class="text-base font-bold text-foreground">
                             Priprave<span class="text-primary">.net</span>
                         </span>
                     </a>
                     <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
-                        Spletna stran z učnimi pripravami za predšolsko vzgojo, razredni
+                        Spletna stran z učnimi gradivi za predšolsko vzgojo, razredni
                         pouk in nadaljnje šolanje.
                     </p>
                 </div>

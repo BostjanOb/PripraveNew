@@ -5,6 +5,8 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\IndexController;
 use App\Http\Controllers\ProfileController;
+use App\Livewire\BrowseDocuments;
+use App\Livewire\CreateDocument;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\ConfirmablePasswordController;
@@ -20,11 +22,11 @@ Route::get('/pomoc', FaqController::class)->name('help');
 Route::view('/kontakt', 'pages.contact')->name('contact');
 Route::view('/pogoji-uporabe', 'pages.pogoji-uporabe')->name('terms');
 
-Route::get('/brskanje', \App\Livewire\BrowseDocuments::class)->name('browse');
+Route::get('/brskanje', BrowseDocuments::class)->name('browse');
 Route::get('/gradivo/{document:slug}', [DocumentController::class, 'show'])->name('document.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dodajanje', \App\Livewire\CreateDocument::class)->name('document.create');
+    Route::get('/dodajanje', CreateDocument::class)->name('document.create');
 
     Route::get('/profil', [ProfileController::class, 'index'])->name('profile');
     Route::get('/profil/uredi', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -49,7 +51,6 @@ Route::middleware('guest')
 
         // Login
         Route::get('/prijava', [AuthenticatedSessionController::class, 'create'])
-            ->middleware('guest')
             ->name('login');
         Route::post('/prijava', [AuthenticatedSessionController::class, 'store'])
             ->middleware('throttle:login');

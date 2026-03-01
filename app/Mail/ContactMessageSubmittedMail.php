@@ -29,10 +29,4 @@ class ContactMessageSubmittedMail extends Mailable implements ShouldQueue
             markdown: 'mail.contact-message-submitted',
         );
     }
-
-    /** @return array<int, \Illuminate\Mail\Mailables\Attachment> */
-    public function attachments(): array
-    {
-        return [];
-    }
 }

@@ -99,7 +99,7 @@ class SocialAuthController extends Controller
         $candidate = $base.'@placeholder.priprave.net';
         $suffix = 2;
 
-        while (User::query()->where('email', $candidate)->exists()) {
+        while (User::where('email', $candidate)->exists()) {
             $candidate = $base.'-'.$suffix.'@placeholder.priprave.net';
             $suffix++;
         }

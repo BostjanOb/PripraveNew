@@ -48,10 +48,7 @@
 
             <div class="mt-4 text-center">
                 <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                    {{-- ArrowLeft --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                    </svg>
+                    <x-icon-regular.arrow-left class="size-3.5" />
                     Nazaj na prijavo
                 </a>
             </div>

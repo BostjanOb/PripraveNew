@@ -192,8 +192,7 @@ class Document extends Model
 
     public function relatedDocuments(int $limit = 4): \Illuminate\Database\Eloquent\Collection
     {
-        return static::query()
-            ->where('id', '!=', $this->id)
+        return static::where('id', '!=', $this->id)
             ->where('subject_id', $this->subject_id)
             ->where('school_type_id', $this->school_type_id)
             ->latest()

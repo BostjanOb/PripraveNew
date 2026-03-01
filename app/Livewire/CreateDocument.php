@@ -58,9 +58,9 @@ class CreateDocument extends Component
 
     public function mount(): void
     {
-        $this->schoolTypes = SchoolType::query()->orderBy('sort_order')->get();
-        $this->grades = Grade::query()->orderBy('sort_order')->get();
-        $this->ostaloCategories = Category::query()->where('parent_id', 2)->orderBy('sort_order')->get();
+        $this->schoolTypes = SchoolType::orderBy('sort_order')->get();
+        $this->grades = Grade::orderBy('sort_order')->get();
+        $this->ostaloCategories = Category::where('parent_id', 2)->orderBy('sort_order')->get();
     }
 
     public function submit(): void
@@ -80,8 +80,7 @@ class CreateDocument extends Component
                         return;
                     }
 
-                    $subjectBelongsToSchoolType = Subject::query()
-                        ->whereKey((int) $value)
+                    $subjectBelongsToSchoolType = Subject::whereKey((int) $value)
                         ->forSchoolType((int) $this->schoolTypeId)
                         ->exists();
 
@@ -103,7 +102,7 @@ class CreateDocument extends Component
 
             $slug = Document::generateUniqueSlug($this->title);
 
-            $document = Document::query()->create([
+            $document = Document::create([
                 'user_id' => auth()->id(),
                 'category_id' => $categoryId,
                 'school_type_id' => (int) $this->schoolTypeId,
@@ -137,7 +136,7 @@ class CreateDocument extends Component
             unlink($tempPath);
 
             foreach ($this->files as $file) {
-                DocumentFile::query()->create([
+                DocumentFile::create([
                     'document_id' => $document->id,
                     'original_name' => $file->getClientOriginalName(),
                     'storage_path' => $zipPath,
@@ -159,9 +158,9 @@ class CreateDocument extends Component
             return new \Illuminate\Database\Eloquent\Collection;
         }
 
-        return Subject::query()->forSchoolType((int) $this->schoolTypeId)
+        return Subject::orderBy('name')
+            ->forSchoolType((int) $this->schoolTypeId)
             ->when($this->subjectSearch, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
-            ->orderBy('name')
             ->get();
     }
 
@@ -172,7 +171,7 @@ class CreateDocument extends Component
             'schoolTypeId' => ['required', 'exists:school_types,id'],
         ]);
 
-        $subject = Subject::query()->firstOrCreate(
+        $subject = Subject::firstOrCreate(
             ['name' => trim($this->subjectSearch)],
         );
         $subject->schoolTypes()->syncWithoutDetaching([(int) $this->schoolTypeId]);

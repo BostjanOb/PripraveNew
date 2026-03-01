@@ -4,30 +4,6 @@
     use App\Models\SchoolType;
     use App\Models\Subject;
 
-    $schoolTypeConfig = [
-        'pv' => [
-            'label' => 'Predšolska vzgoja',
-            'shortLabel' => 'PV',
-            'badge' => 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 dark:bg-fuchsia-950/50 dark:text-fuchsia-300 dark:border-fuchsia-800',
-            'filterActive' => 'border-fuchsia-400 bg-fuchsia-500 text-white',
-            'icon' => 'icon-regular.children',
-        ],
-        'os' => [
-            'label' => 'Osnovna šola',
-            'shortLabel' => 'OS',
-            'badge' => 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800',
-            'filterActive' => 'border-teal-400 bg-teal-500 text-white',
-            'icon' => 'icon-regular.school',
-        ],
-        'ss' => [
-            'label' => 'Srednja šola',
-            'shortLabel' => 'SS',
-            'badge' => 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:border-orange-800',
-            'filterActive' => 'border-orange-400 bg-orange-500 text-white',
-            'icon' => 'icon-regular.graduation-cap',
-        ],
-    ];
-
     $categoryTypeStyles = [
         'priprava' => ['badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800', 'abbr' => 'P'],
         'delovni-list' => ['badge' => 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800', 'abbr' => 'DL'],
@@ -180,7 +156,7 @@
                             @click="$dispatch('open-mobile-filters')"
                             class="flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground lg:hidden"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
+                            <x-icon-regular.sliders class="size-4 text-muted-foreground" />
                             Filtri
                             @if($activeFilterCount > 0)
                                 <span class="flex size-5 items-center justify-center rounded-full bg-teal-500 text-[10px] font-bold text-white">

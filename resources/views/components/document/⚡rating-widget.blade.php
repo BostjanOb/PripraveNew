@@ -57,12 +57,8 @@ new class extends Component
                     class="transition-transform hover:scale-125"
                     aria-label="Oceni {{ $star }} od 5"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5"
-                         class="size-8 transition-colors"
-                         x-bind:class="({{ $star }} <= (hoveredStar || {{ $userRating ?? 0 }})) ? 'fill-amber-400 text-amber-400 stroke-amber-400' : 'fill-none text-amber-200 stroke-amber-200'"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                    </svg>
+                    <x-icon-duotone-regular.star class="size-8 transition-colors"
+                                         x-bind:class="({{ $star }} <= (hoveredStar || {{ $userRating ?? 0 }})) ? 'fill-amber-400 text-amber-400 stroke-amber-400' : 'fill-none text-amber-200 stroke-amber-200'"/>
                 </button>
             @endfor
         </div>
@@ -75,9 +71,7 @@ new class extends Component
         <div class="mt-3">
             <div class="flex items-center gap-1 opacity-40">
                 @for($star = 1; $star <= 5; $star++)
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 text-amber-200">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                    </svg>
+                    <x-icon-duotone-regular.star  class="size-8 text-amber-200" />
                 @endfor
             </div>
             <p class="mt-2 text-xs text-muted-foreground">

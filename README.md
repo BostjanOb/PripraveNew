@@ -5,6 +5,7 @@ Priprave.net is a Laravel 12 app for browsing, publishing, and managing school m
 ## TODO
 
 - [ ] Captcha for registration
+- [ ] Check comment button (not updating)
 
 ## Tech Stack
 

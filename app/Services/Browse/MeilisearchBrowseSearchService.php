@@ -52,9 +52,8 @@ final class MeilisearchBrowseSearchService implements BrowseSearchService
             return collect();
         }
 
-        return Document::query()
+        return Document::whereIn('id', $documentIds->all())
             ->with(['user', 'schoolType', 'grade', 'subject', 'category'])
-            ->whereIn('id', $documentIds->all())
             ->get()
             ->sortBy(fn (Document $document): int => (int) $documentIds->search($document->id))
             ->values();

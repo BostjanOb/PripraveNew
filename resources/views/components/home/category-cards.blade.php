@@ -1,50 +1,7 @@
 @props(['schoolTypes' => collect()])
 
 @php
-    $categoryConfig = [
-        'pv' => [
-            'title' => 'Predšolska vzgoja',
-            'description' => 'Gradiva za vrtec in predšolsko obdobje',
-            'icon' => 'icon-regular.children',
-            'gradient' => 'from-fuchsia-500 to-pink-500',
-            'bgLight' => 'bg-fuchsia-50 dark:bg-fuchsia-950/30',
-            'borderColor' => 'border-fuchsia-200 dark:border-fuchsia-800',
-            'textColor' => 'text-fuchsia-700 dark:text-fuchsia-300',
-            'iconBg' => 'bg-fuchsia-100 dark:bg-fuchsia-900/50',
-            'iconColor' => 'text-fuchsia-600 dark:text-fuchsia-400',
-            'badgeBg' => 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/50 dark:text-fuchsia-300',
-            'hoverBorder' => 'hover:border-fuchsia-300 dark:hover:border-fuchsia-700',
-            'shadowColor' => 'hover:shadow-fuchsia-100/50 dark:hover:shadow-fuchsia-900/30',
-        ],
-        'os' => [
-            'title' => 'Osnovna šola',
-            'description' => 'Gradiva za 1. do 9. razred osnovne šole',
-            'icon' => 'icon-regular.school',
-            'gradient' => 'from-teal-500 to-emerald-500',
-            'bgLight' => 'bg-teal-50 dark:bg-teal-950/30',
-            'borderColor' => 'border-teal-200 dark:border-teal-800',
-            'textColor' => 'text-teal-700 dark:text-teal-300',
-            'iconBg' => 'bg-teal-100 dark:bg-teal-900/50',
-            'iconColor' => 'text-teal-600 dark:text-teal-400',
-            'badgeBg' => 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300',
-            'hoverBorder' => 'hover:border-teal-300 dark:hover:border-teal-700',
-            'shadowColor' => 'hover:shadow-teal-100/50 dark:hover:shadow-teal-900/30',
-        ],
-        'ss' => [
-            'title' => 'Srednja šola',
-            'description' => 'Gradiva za gimnazije in srednje šole',
-            'icon' => 'icon-regular.graduation-cap',
-            'gradient' => 'from-orange-500 to-amber-500',
-            'bgLight' => 'bg-orange-50 dark:bg-orange-950/30',
-            'borderColor' => 'border-orange-200 dark:border-orange-800',
-            'textColor' => 'text-orange-700 dark:text-orange-300',
-            'iconBg' => 'bg-orange-100 dark:bg-orange-900/50',
-            'iconColor' => 'text-orange-600 dark:text-orange-400',
-            'badgeBg' => 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
-            'hoverBorder' => 'hover:border-orange-300 dark:hover:border-orange-700',
-            'shadowColor' => 'hover:shadow-orange-100/50 dark:hover:shadow-orange-900/30',
-        ],
-    ];
+    $schoolTypeConfig = \App\Support\SchoolTypeUiConfig::all();
 @endphp
 
 <section class="mx-auto max-w-6xl px-4 py-8 md:py-10">
@@ -64,7 +21,8 @@
     <div class="grid gap-5 md:grid-cols-3">
         @foreach ($schoolTypes as $schoolType)
             @php
-                $config = $categoryConfig[$schoolType->slug] ?? $categoryConfig['os'];
+                $typeConfig = $schoolTypeConfig[$schoolType->slug] ?? $schoolTypeConfig['os'];
+                $config = $typeConfig['card'];
                 $count = $schoolType->documents_count ?? 0;
             @endphp
             <a
@@ -75,7 +33,7 @@
                 <div class="absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br {{ $config['gradient'] }} opacity-10 transition-all group-hover:scale-150 group-hover:opacity-20"></div>
 
                 <div class="flex size-14 items-center justify-center rounded-2xl {{ $config['iconBg'] }}">
-                    <x-dynamic-component :component="$config['icon']" class="size-7 {{ $config['iconColor'] }}" />
+                    <x-dynamic-component :component="$typeConfig['icon']" class="size-7 {{ $config['iconColor'] }}" />
                 </div>
                 <div>
                     <h3 class="text-lg font-bold {{ $config['textColor'] }}">

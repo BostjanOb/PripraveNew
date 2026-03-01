@@ -20,7 +20,7 @@ class UploadedDocumentsTab extends Component
 
     public function deleteDocument(int $id): void
     {
-        $document = Document::query()->findOrFail($id);
+        $document = Document::findOrFail($id);
 
         if ($document->user_id !== auth()->id()) {
             abort(403);

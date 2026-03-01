@@ -8,6 +8,7 @@ use App\Models\SchoolType;
 use App\Models\Subject;
 use App\Services\Browse\BrowseSearchInput;
 use App\Services\Browse\BrowseSearchService;
+use App\Support\SchoolTypeUiConfig;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -168,6 +169,7 @@ class BrowseDocuments extends Component
             'subjects' => $subjects,
             'allCategories' => $allCategories,
             'selectedSchoolType' => $schoolType,
+            'schoolTypeConfig' => SchoolTypeUiConfig::all(),
             'selectedCategories' => $selectedCategories,
             'hasActiveFilters' => $this->hasActiveFilters(),
         ]);
