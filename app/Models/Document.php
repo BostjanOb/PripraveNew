@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -190,7 +191,7 @@ class Document extends Model
         return $slug;
     }
 
-    public function relatedDocuments(int $limit = 4): \Illuminate\Database\Eloquent\Collection
+    public function relatedDocuments(int $limit = 4): Collection
     {
         return static::where('id', '!=', $this->id)
             ->where('subject_id', $this->subject_id)

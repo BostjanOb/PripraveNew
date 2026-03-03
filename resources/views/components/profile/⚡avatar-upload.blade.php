@@ -48,7 +48,7 @@ new class extends Component
     </div>
 
     <div class="flex flex-col items-center gap-5 sm:flex-row">
-        <div class="flex size-24 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-emerald-200 text-2xl font-bold text-teal-700 shadow-sm">
+        <div class="flex size-24 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-teal-100 to-emerald-200 text-2xl font-bold text-teal-700 shadow-sm">
             @if($user->avatar_url)
                 <img src="{{ $user->avatar_url }}" alt="{{ $user->display_name }}" class="size-full rounded-2xl object-cover" />
             @else

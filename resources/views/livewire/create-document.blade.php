@@ -83,7 +83,7 @@
                 <div class="grid gap-3 sm:grid-cols-2">
                     <button
                         type="button"
-                        @click="categoryType = 'priprava'; $wire.set('categoryType', 'priprava'); $wire.set('ostaloCategory', '')"
+                        @click="categoryType = 'priprava'; $wire.set('ostaloCategory', '')"
                         :class="categoryType === 'priprava'
                             ? 'border-emerald-400 bg-emerald-50 shadow-md shadow-emerald-100/50 dark:border-emerald-600 dark:bg-emerald-950/40 dark:shadow-emerald-950/40'
                             : 'border-border bg-background hover:border-emerald-200 hover:shadow-sm dark:hover:border-emerald-800'"
@@ -105,7 +105,7 @@
 
                     <button
                         type="button"
-                        @click="categoryType = 'ostalo'; $wire.set('categoryType', 'ostalo')"
+                        @click="categoryType = 'ostalo'"
                         :class="categoryType === 'ostalo'
                             ? 'border-emerald-400 bg-emerald-50 shadow-md shadow-emerald-100/50 dark:border-emerald-600 dark:bg-emerald-950/40 dark:shadow-emerald-950/40'
                             : 'border-border bg-background hover:border-emerald-200 hover:shadow-sm dark:hover:border-emerald-800'"
@@ -319,7 +319,7 @@
                 @if(count($files))
                     <div class="mt-4">
                         <p class="mb-2 text-xs font-semibold text-muted-foreground">
-                            {{ count($files) }} {{ count($files) === 1 ? 'datoteka' : (count($files) === 2 ? 'datoteki' : (count($files) <= 4 ? 'datoteke' : 'datotek')) }}
+                            {{ count($files) }} {{ match(true) { count($files) === 1 => 'datoteka', count($files) === 2 => 'datoteki', count($files) <= 4 => 'datoteke', default => 'datotek' } }}
                         </p>
                         <div class="grid gap-2 sm:grid-cols-2">
                             @foreach($files as $index => $file)

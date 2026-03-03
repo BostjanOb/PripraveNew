@@ -13,6 +13,18 @@ class LatestDocuments extends Component
 {
     public string $activeType = 'all';
 
+    /** @var Collection<int, SchoolType> */
+    public Collection $schoolTypes;
+
+    /** @var array<string, array<string, mixed>> */
+    public array $schoolTypeConfig = [];
+
+    public function mount(): void
+    {
+        $this->schoolTypes = SchoolType::orderBy('sort_order')->get();
+        $this->schoolTypeConfig = SchoolTypeUiConfig::all();
+    }
+
     public function setActiveType(string $type): void
     {
         $this->activeType = $type;
@@ -26,13 +38,10 @@ class LatestDocuments extends Component
                 fn ($q) => $q->whereHas('schoolType', fn ($q) => $q->where('slug', $this->activeType))
             )->latest()->limit(10)->get();
 
-        /** @var Collection<int, SchoolType> $schoolTypes */
-        $schoolTypes = SchoolType::orderBy('sort_order')->get();
-
         return view('livewire.latest-documents', [
             'documents' => $documents,
-            'schoolTypes' => $schoolTypes,
-            'schoolTypeConfig' => SchoolTypeUiConfig::all(),
+            'schoolTypes' => $this->schoolTypes,
+            'schoolTypeConfig' => $this->schoolTypeConfig,
         ]);
     }
 }

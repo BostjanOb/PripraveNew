@@ -20,6 +20,7 @@
                 @foreach($schoolTypes as $st)
                     @php $conf = $schoolTypeConfig[$st->slug] ?? $schoolTypeConfig['os']; @endphp
                     <button
+                        wire:key="filter-st-{{ $st->id }}"
                         wire:click="setSchoolType('{{ $st->slug }}')"
                         class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors {{ $selectedSchoolType?->is($st) ? $conf['filterActive'] . ' font-semibold' : 'text-muted-foreground hover:bg-secondary hover:text-foreground' }}"
                     >
@@ -51,6 +52,7 @@
                     @php $gradeCount = $facetCounts['grade_id'][$grade->id] ?? 0; @endphp
                     @continue($hasFacetCounts && $gradeCount === 0 && $gradeId !== $grade->id)
                     <button
+                        wire:key="filter-grade-{{ $grade->id }}"
                         wire:click="setGrade({{ $gradeId === $grade->id ? 'null' : $grade->id }})"
                         @class([
                             'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors',
@@ -143,6 +145,7 @@
                     @php $subjectCount = $facetCounts['subject_id'][$subject->id] ?? 0; @endphp
                     @continue($hasFacetCounts && $subjectCount === 0 && $subjectId !== $subject->id)
                     <button
+                        wire:key="filter-subject-{{ $subject->id }}"
                         data-subject-item
                         x-show="matches($el)"
                         x-transition
@@ -194,6 +197,7 @@
                         $isSelected = in_array($category->id, $categoryIds);
                     @endphp
                     <button
+                        wire:key="filter-cat-{{ $category->id }}"
                         wire:click="toggleCategory({{ $category->id }})"
                         @if($hasFacetCounts && $catCount === 0 && !$isSelected) disabled @endif
                         class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors {{ $isSelected

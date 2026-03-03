@@ -27,7 +27,7 @@
     };
 @endphp
 
-<div class="mb-6 rounded-2xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 p-4 md:p-5 dark:border-emerald-800/70 dark:from-emerald-950/60 dark:via-teal-950/50 dark:to-cyan-950/50">
+<div class="mb-6 rounded-2xl border border-emerald-200/80 bg-linear-to-r from-emerald-50 via-teal-50 to-cyan-50 p-4 md:p-5 dark:border-emerald-800/70 dark:from-emerald-950/60 dark:via-teal-950/50 dark:to-cyan-950/50">
     <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
             <div class="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
@@ -59,7 +59,7 @@
 
     {{-- Progress bar --}}
     <div class="mt-4 h-3 w-full overflow-hidden rounded-full bg-white/80 dark:bg-emerald-900/50">
-        <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+        <div class="h-full rounded-full bg-linear-to-r from-emerald-500 to-teal-500 transition-all duration-500"
              style="width: {{ number_format($progressPercent, 1) }}%"></div>
     </div>
 

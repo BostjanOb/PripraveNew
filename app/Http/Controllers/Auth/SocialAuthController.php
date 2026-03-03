@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use RuntimeException;
 use Throwable;
 
 class SocialAuthController extends Controller
@@ -92,7 +93,7 @@ class SocialAuthController extends Controller
         }
 
         if ($provider !== 'facebook') {
-            throw new \RuntimeException('Missing required email from provider.');
+            throw new RuntimeException('Missing required email from provider.');
         }
 
         $base = 'facebook-'.$providerId;

@@ -351,7 +351,7 @@
                 <div class="rounded-2xl border border-border bg-card p-5">
                     <h3 class="text-sm font-semibold text-foreground">Avtor</h3>
                     <div class="mt-3 flex items-center gap-3">
-                        <div class="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-emerald-100 dark:from-teal-900/50 dark:to-emerald-900/50">
+                        <div class="flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-teal-100 to-emerald-100 dark:from-teal-900/50 dark:to-emerald-900/50">
                             <x-icon-regular.user class="size-7 text-teal-600 dark:text-teal-400" />
                         </div>
                         <div>

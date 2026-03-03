@@ -41,10 +41,31 @@ class BrowseDocuments extends Component
     #[Url(as: 'razvrsti')]
     public string $sort = 'newest';
 
+    /** @var Collection<int, SchoolType> */
+    public Collection $schoolTypes;
+
+    /** @var Collection<int, Grade> */
+    public Collection $grades;
+
+    /** @var Collection<int, Category> */
+    public Collection $categories;
+
+    /** @var array<string, array<string, mixed>> */
+    public array $schoolTypeConfig = [];
+
     private const ITEMS_PER_PAGE = 15;
 
     public function mount(): void
     {
+        $this->schoolTypes = SchoolType::orderBy('sort_order')->get();
+        $this->grades = Grade::select('grades.*')
+            ->join('school_types', 'school_types.id', '=', 'grades.school_type_id')
+            ->orderBy('school_types.sort_order')
+            ->orderBy('grades.sort_order')
+            ->orderBy('grades.name')
+            ->get();
+        $this->categories = Category::with('children')->topLevel()->orderBy('sort_order')->get();
+        $this->schoolTypeConfig = SchoolTypeUiConfig::all();
         $this->normalizeSchoolTypeSlug();
     }
 
@@ -114,19 +135,12 @@ class BrowseDocuments extends Component
     #[Layout('components.layouts.app')]
     public function render(): View
     {
-        $schoolTypes = SchoolType::orderBy('sort_order')->get();
-        $categories = Category::with('children')->topLevel()->orderBy('sort_order')->get();
-        $allCategories = $categories->flatMap(fn (Category $c) => $c->children->isEmpty() ? collect([$c]) : $c->children);
+        $allCategories = $this->categories->flatMap(
+            fn (Category $c) => $c->children->isEmpty() ? collect([$c]) : $c->children
+        );
 
-        $schoolType = $this->resolveSchoolType($schoolTypes);
+        $schoolType = $this->resolveSchoolType();
         $schoolTypeId = $schoolType?->id;
-
-        $grades = Grade::select('grades.*')
-            ->join('school_types', 'school_types.id', '=', 'grades.school_type_id')
-            ->orderBy('school_types.sort_order')
-            ->orderBy('grades.sort_order')
-            ->orderBy('grades.name')
-            ->get();
 
         $subjects = Subject::when($schoolTypeId, fn ($query) => $query->forSchoolType($schoolTypeId))
             ->orderBy('name')
@@ -164,12 +178,12 @@ class BrowseDocuments extends Component
             'documents' => $documents,
             'facetCounts' => $result->facetCounts,
             'hasFacetCounts' => $result->facetCounts !== [],
-            'schoolTypes' => $schoolTypes,
-            'grades' => $grades,
+            'schoolTypes' => $this->schoolTypes,
+            'grades' => $this->grades,
             'subjects' => $subjects,
             'allCategories' => $allCategories,
             'selectedSchoolType' => $schoolType,
-            'schoolTypeConfig' => SchoolTypeUiConfig::all(),
+            'schoolTypeConfig' => $this->schoolTypeConfig,
             'selectedCategories' => $selectedCategories,
             'hasActiveFilters' => $this->hasActiveFilters(),
         ]);
@@ -187,14 +201,14 @@ class BrowseDocuments extends Component
         $this->schoolTypeSlug = Str::lower(trim($this->schoolTypeSlug));
     }
 
-    private function resolveSchoolType(Collection $schoolTypes): ?SchoolType
+    private function resolveSchoolType(): ?SchoolType
     {
         if ($this->schoolTypeSlug === null) {
             return null;
         }
 
         /** @var ?SchoolType */
-        return $schoolTypes->first(
+        return $this->schoolTypes->first(
             fn (SchoolType $schoolType): bool => Str::lower($schoolType->slug) === $this->schoolTypeSlug
         );
     }

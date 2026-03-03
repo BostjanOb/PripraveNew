@@ -3,7 +3,7 @@
 <section class="relative overflow-hidden px-4 py-16 md:py-20">
     {{-- Background --}}
     <div class="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div class="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50/80 to-rose-50/60 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-rose-950/20"></div>
+        <div class="absolute inset-0 bg-linear-to-br from-amber-50 via-orange-50/80 to-rose-50/60 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-rose-950/20"></div>
         <div class="absolute inset-0 opacity-[0.06] dark:opacity-[0.04]" style="background-image: radial-gradient(circle, #f59e0b 1px, transparent 1px); background-size: 24px 24px;"></div>
     </div>
 
@@ -20,7 +20,7 @@
                     <div class="absolute size-52 animate-[spin_30s_linear_infinite] rounded-full border-2 border-dashed border-amber-200/60"></div>
                     <div class="absolute size-40 animate-[spin_20s_linear_infinite_reverse] rounded-full border-2 border-dashed border-orange-200/50"></div>
                     {{-- Center icon --}}
-                    <div class="relative flex size-24 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-200/60">
+                    <div class="relative flex size-24 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-200/60">
                         <x-icon-regular.upload  class="size-12 text-white"/>
                     </div>
                     {{-- Floating badges --}}
@@ -80,7 +80,7 @@
                 <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
                     <a
                         href="{{ url('/dodajanje') }}"
-                        class="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-200/50 transition-all hover:shadow-xl hover:shadow-orange-200/60 hover:brightness-105 dark:shadow-orange-900/30 dark:hover:shadow-orange-900/40"
+                        class="group inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-amber-500 to-orange-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-200/50 transition-all hover:shadow-xl hover:shadow-orange-200/60 hover:brightness-105 dark:shadow-orange-900/30 dark:hover:shadow-orange-900/40"
                     >
                         <x-icon-regular.upload class="size-4" />
                         Dodaj pripravo

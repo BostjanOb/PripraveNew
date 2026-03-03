@@ -77,9 +77,9 @@ Route::middleware('auth')->group(function () {
         ->name('logout');
 
     // Email verification
-    Route::get('/prijava/potrdi-email', [EmailVerificationPromptController::class, '__invoke'])
+    Route::get('/prijava/potrdi-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
-    Route::get('/prijava/potrdi-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
+    Route::get('/prijava/potrdi-email/{id}/{hash}', VerifyEmailController::class)
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
     Route::post('/prijava/potrdi-email/ponastavi', [EmailVerificationNotificationController::class, 'store'])

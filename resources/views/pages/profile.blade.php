@@ -15,7 +15,7 @@
                 <div class="flex flex-col items-center gap-6 md:flex-row md:items-start md:gap-8">
 
                     {{-- Avatar --}}
-                    <div class="flex size-24 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-emerald-200 text-2xl font-bold text-teal-700 shadow-sm md:size-28 md:text-3xl">
+                    <div class="flex size-24 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-teal-100 to-emerald-200 text-2xl font-bold text-teal-700 shadow-sm md:size-28 md:text-3xl">
                         @if($user->avatar_url)
                             <img src="{{ $user->avatar_url }}" alt="{{ $user->display_name }}" class="size-full rounded-2xl object-cover" />
                         @else

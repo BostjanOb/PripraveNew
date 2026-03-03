@@ -30,7 +30,7 @@
                 class="group relative flex flex-col items-start gap-4 overflow-hidden rounded-2xl border-2 {{ $config['borderColor'] }} {{ $config['bgLight'] }} p-6 text-left transition-all {{ $config['hoverBorder'] }} hover:shadow-lg {{ $config['shadowColor'] }}"
             >
                 {{-- Decorative corner gradient --}}
-                <div class="absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br {{ $config['gradient'] }} opacity-10 transition-all group-hover:scale-150 group-hover:opacity-20"></div>
+                <div class="absolute -right-8 -top-8 size-24 rounded-full bg-linear-to-br {{ $config['gradient'] }} opacity-10 transition-all group-hover:scale-150 group-hover:opacity-20"></div>
 
                 <div class="flex size-14 items-center justify-center rounded-2xl {{ $config['iconBg'] }}">
                     <x-dynamic-component :component="$typeConfig['icon']" class="size-7 {{ $config['iconColor'] }}" />

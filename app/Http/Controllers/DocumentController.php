@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\DocumentFile;
 use App\Support\BadgeRegistry;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use ZipArchive;
 
 class DocumentController extends Controller
 {
-    public function show(Document $document): \Illuminate\View\View
+    public function show(Document $document): View
     {
         $document->load([
             'user',
@@ -117,7 +119,7 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function destroy(Document $document): \Illuminate\Http\RedirectResponse
+    public function destroy(Document $document): RedirectResponse
     {
         Gate::authorize('delete', $document);
 
