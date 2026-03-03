@@ -106,7 +106,7 @@ class Document extends Model
     }
 
     #[Scope]
-    public function likeSearch(Builder $query, string $search): Builder
+    protected function likeSearch(Builder $query, string $search): Builder
     {
         return $query->where(function (Builder $q) use ($search) {
             $q->where('title', 'like', "%{$search}%")
@@ -117,31 +117,31 @@ class Document extends Model
     }
 
     #[Scope]
-    public function forSchoolType(Builder $query, int $schoolTypeId): Builder
+    protected function forSchoolType(Builder $query, int $schoolTypeId): Builder
     {
         return $query->where('school_type_id', $schoolTypeId);
     }
 
     #[Scope]
-    public function forGrade(Builder $query, int $gradeId): Builder
+    protected function forGrade(Builder $query, int $gradeId): Builder
     {
         return $query->where('grade_id', $gradeId);
     }
 
     #[Scope]
-    public function forSubject(Builder $query, int $subjectId): Builder
+    protected function forSubject(Builder $query, int $subjectId): Builder
     {
         return $query->where('subject_id', $subjectId);
     }
 
     #[Scope]
-    public function forCategory(Builder $query, int $categoryId): Builder
+    protected function forCategory(Builder $query, int $categoryId): Builder
     {
         return $query->where('category_id', $categoryId);
     }
 
     #[Scope]
-    public function sorted(Builder $query, string $sort = 'newest'): Builder
+    protected function sorted(Builder $query, string $sort = 'newest'): Builder
     {
         return match ($sort) {
             'oldest' => $query->oldest(),

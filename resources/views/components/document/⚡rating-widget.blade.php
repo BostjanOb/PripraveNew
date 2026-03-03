@@ -10,12 +10,6 @@ new class extends Component
 
     public ?int $userRating = null;
 
-    public function mount(Document $document, ?int $userRating = null): void
-    {
-        $this->document = $document;
-        $this->userRating = $userRating;
-    }
-
     public function rate(int $stars): void
     {
         $user = auth()->user();

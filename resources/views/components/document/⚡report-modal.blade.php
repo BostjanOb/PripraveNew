@@ -19,12 +19,6 @@ new class extends Component
 
     public bool $submitted = false;
 
-    public function mount(Document $document, string $context = 'mobile'): void
-    {
-        $this->document = $document;
-        $this->context = $context;
-    }
-
     #[Computed]
     public function reportReasons(): Collection
     {

@@ -11,13 +11,6 @@ new class extends Component
 
     public string $context = 'mobile';
 
-    public function mount(Document $document, bool $isSaved = false, string $context = 'mobile'): void
-    {
-        $this->document = $document;
-        $this->isSaved = $isSaved;
-        $this->context = $context;
-    }
-
     public function toggle(): void
     {
         $user = auth()->user();

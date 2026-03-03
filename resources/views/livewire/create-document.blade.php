@@ -24,12 +24,8 @@
     @else
         {{-- ── Hero ── --}}
         <div class="relative overflow-hidden border-b border-border bg-card">
-            <svg class="pointer-events-none absolute -left-6 -top-2 size-48 opacity-30" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="20" cy="20" r="4" fill="#10b981" opacity=".6"/><circle cx="60" cy="15" r="3" fill="#f59e0b" opacity=".5"/><circle cx="100" cy="25" r="5" fill="#6366f1" opacity=".4"/><circle cx="140" cy="10" r="3" fill="#ec4899" opacity=".5"/><circle cx="180" cy="30" r="4" fill="#0ea5e9" opacity=".6"/><circle cx="35" cy="60" r="3" fill="#a855f7" opacity=".5"/><circle cx="80" cy="55" r="4" fill="#10b981" opacity=".4"/><circle cx="125" cy="65" r="3" fill="#f59e0b" opacity=".5"/><circle cx="165" cy="50" r="5" fill="#6366f1" opacity=".4"/><circle cx="15" cy="100" r="4" fill="#ec4899" opacity=".5"/>
-            </svg>
-            <svg class="pointer-events-none absolute -right-4 bottom-0 size-36 rotate-180 opacity-20" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="20" cy="20" r="4" fill="#10b981" opacity=".6"/><circle cx="60" cy="15" r="3" fill="#f59e0b" opacity=".5"/><circle cx="100" cy="25" r="5" fill="#6366f1" opacity=".4"/><circle cx="140" cy="10" r="3" fill="#ec4899" opacity=".5"/><circle cx="35" cy="60" r="3" fill="#a855f7" opacity=".5"/>
-            </svg>
+            <x-decorations.color-dots class="absolute -left-6 -top-2 size-48 opacity-30" />
+            <x-decorations.color-dots class="absolute -right-4 bottom-0 size-36 rotate-180 opacity-20" />
 
             <div class="relative mx-auto max-w-4xl px-4 py-10 text-center md:py-12">
                 <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/50">
@@ -47,23 +43,20 @@
             wire:submit="submit"
             x-data="{
                 categoryType: $wire.entangle('categoryType'),
-                schoolTypeId: '',
-                gradeId: '',
+                schoolTypeId: $wire.entangle('schoolTypeId'),
+                gradeId: $wire.entangle('gradeId'),
                 allGrades: @js($grades->map(fn($g) => ['id' => $g->id, 'name' => $g->name, 'school_type_id' => $g->school_type_id])),
                 get filteredGrades() {
                     return this.allGrades.filter(g => g.school_type_id == this.schoolTypeId);
                 },
                 selectSchoolType(id) {
-                    this.schoolTypeId = id;
+                    this.schoolTypeId = String(id);
                     this.gradeId = '';
-                    $wire.set('schoolTypeId', String(id));
-                    $wire.set('gradeId', '');
                     $wire.set('subjectId', '');
                     $wire.set('subjectSearch', '');
                 },
                 selectGrade(id) {
-                    this.gradeId = id;
-                    $wire.set('gradeId', String(id));
+                    this.gradeId = String(id);
                 },
             }"
             class="mx-auto max-w-4xl space-y-8 px-4 py-8 md:py-12"
@@ -213,7 +206,6 @@
                         </label>
                         <select
                             x-model="gradeId"
-                            @change="$wire.set('gradeId', gradeId)"
                             class="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:focus:border-indigo-500 dark:focus:ring-indigo-900/70"
                         >
                             <option value="">Izberite razred ...</option>

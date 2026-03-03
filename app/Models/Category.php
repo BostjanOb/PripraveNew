@@ -30,13 +30,13 @@ class Category extends Model
     }
 
     #[Scope]
-    public function topLevel(Builder $query): Builder
+    protected function topLevel(Builder $query): Builder
     {
         return $query->whereNull('parent_id');
     }
 
     #[Scope]
-    public function isChildren(Builder $query): Builder
+    protected function isChildren(Builder $query): Builder
     {
         return $query->whereNotNull('parent_id');
     }

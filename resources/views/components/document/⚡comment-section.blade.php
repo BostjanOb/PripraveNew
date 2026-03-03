@@ -11,11 +11,6 @@ new class extends Component
 
     public string $text = '';
 
-    public function mount(Document $document): void
-    {
-        $this->document = $document;
-    }
-
     public function addComment(): void
     {
         $user = auth()->user();
