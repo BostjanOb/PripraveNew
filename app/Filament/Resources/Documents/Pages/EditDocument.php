@@ -3,23 +3,21 @@
 namespace App\Filament\Resources\Documents\Pages;
 
 use App\Filament\Resources\Documents\DocumentResource;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\ViewAction;
+use App\Models\Document;
 use Filament\Resources\Pages\EditRecord;
 
 class EditDocument extends EditRecord
 {
     protected static string $resource = DocumentResource::class;
 
-    protected function getHeaderActions(): array
+    public function mount(int|string $record): void
     {
-        return [
-            ViewAction::make(),
-            DeleteAction::make(),
-            ForceDeleteAction::make(),
-            RestoreAction::make(),
-        ];
+        parent::mount($record);
+
+        $document = DocumentResource::getRecordRouteBindingEloquentQuery()
+            ->where((new Document)->getRouteKeyName(), $record)
+            ->firstOrFail();
+
+        $this->redirect(DocumentResource::getFrontendEditUrl($document), navigate: true);
     }
 }

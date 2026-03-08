@@ -15,7 +15,7 @@ class ManageDocumentDownloads extends ManageRelatedRecords
 
     protected static string $relationship = 'downloadRecords';
 
-    protected static ?string $title = 'Prenosi';
+    protected static ?string $navigationLabel = 'Prenosi';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowDownTray;
 

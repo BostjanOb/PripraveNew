@@ -15,7 +15,7 @@ class ManageDocumentComments extends ManageRelatedRecords
 
     protected static string $relationship = 'comments';
 
-    protected static ?string $title = 'Komentarji';
+    protected static ?string $navigationLabel = 'Komentarji';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeft;
 

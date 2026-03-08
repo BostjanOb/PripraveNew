@@ -15,7 +15,7 @@ class ManageDocumentRatings extends ManageRelatedRecords
 
     protected static string $relationship = 'ratings';
 
-    protected static ?string $title = 'Ocene';
+    protected static ?string $navigationLabel = 'Ocene';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedStar;
 

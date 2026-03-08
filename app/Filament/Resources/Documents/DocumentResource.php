@@ -12,10 +12,10 @@ use App\Filament\Resources\Documents\Pages\ViewDocument;
 use App\Models\Document;
 use App\Models\Subject;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
@@ -37,6 +37,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 
@@ -132,13 +133,15 @@ class DocumentResource extends Resource
         return $schema
             ->components([
                 Section::make('Osnovni podatki')
+                    ->columnSpanFull()
+                    ->columns()
                     ->schema([
+                        TextEntry::make('user.display_name')
+                            ->label('Avtor'),
                         TextEntry::make('title')
                             ->label('Naslov'),
                         TextEntry::make('slug')
                             ->label('Slug'),
-                        TextEntry::make('user.display_name')
-                            ->label('Avtor'),
                         TextEntry::make('category.name')
                             ->label('Kategorija'),
                         TextEntry::make('schoolType.name')
@@ -161,9 +164,7 @@ class DocumentResource extends Resource
                         TextEntry::make('updated_at')
                             ->label('Posodobljeno')
                             ->dateTime('d.m.Y H:i'),
-                    ]),
-                Section::make('Vsebina')
-                    ->schema([
+
                         TextEntry::make('description')
                             ->label('Opis')
                             ->columnSpanFull(),
@@ -211,7 +212,10 @@ class DocumentResource extends Resource
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
+                Action::make('editFrontend')
+                    ->label('Uredi')
+                    ->icon(Heroicon::OutlinedPencilSquare)
+                    ->url(fn (Document $record): string => static::getFrontendEditUrl($record)),
                 DeleteAction::make(),
                 ForceDeleteAction::make(),
                 RestoreAction::make(),
@@ -235,7 +239,6 @@ class DocumentResource extends Resource
     {
         return $page->generateNavigationItems([
             ViewDocument::class,
-            EditDocument::class,
             ManageDocumentDownloads::class,
             ManageDocumentComments::class,
             ManageDocumentRatings::class,
@@ -248,10 +251,10 @@ class DocumentResource extends Resource
             'index' => ListDocuments::route('/'),
             'create' => CreateDocument::route('/create'),
             'view' => ViewDocument::route('/{record}'),
-            'edit' => EditDocument::route('/{record}/edit'),
             'downloads' => ManageDocumentDownloads::route('/{record}/downloads'),
             'comments' => ManageDocumentComments::route('/{record}/comments'),
             'ratings' => ManageDocumentRatings::route('/{record}/ratings'),
+            'edit' => EditDocument::route('/{record}/edit'),
         ];
     }
 
@@ -261,5 +264,15 @@ class DocumentResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('view', ['record' => $record]);
+    }
+
+    public static function getFrontendEditUrl(Document $record): string
+    {
+        return route('document.create', ['uredi' => $record->getKey()]);
     }
 }

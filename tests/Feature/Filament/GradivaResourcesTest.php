@@ -2,8 +2,8 @@
 
 use App\Enums\ReportStatus;
 use App\Filament\Resources\Comments\Pages\ManageComments;
+use App\Filament\Resources\Documents\DocumentResource;
 use App\Filament\Resources\Documents\Pages\CreateDocument;
-use App\Filament\Resources\Documents\Pages\EditDocument;
 use App\Filament\Resources\Documents\Pages\ListDocuments;
 use App\Filament\Resources\Documents\Pages\ManageDocumentComments;
 use App\Filament\Resources\Documents\Pages\ManageDocumentDownloads;
@@ -45,9 +45,6 @@ it('loads gradiva resource pages', function () {
     Livewire::test(ListDocuments::class)
         ->assertOk()
         ->assertCanSeeTableRecords([$document]);
-
-    Livewire::test(EditDocument::class, ['record' => $document->getRouteKey()])
-        ->assertOk();
 
     Livewire::test(ViewDocument::class, ['record' => $document->getRouteKey()])
         ->assertOk();
@@ -91,7 +88,7 @@ it('creates and updates a comment', function () {
     expect($comment->fresh()->text)->toBe('Posodobljen komentar');
 });
 
-it('creates and updates a document', function () {
+it('creates a document', function () {
     $author = User::factory()->create();
     $category = Category::factory()->create();
     $schoolType = SchoolType::factory()->create();
@@ -117,28 +114,11 @@ it('creates and updates a document', function () {
 
     $document = Document::query()->where('slug', 'novo-gradivo')->firstOrFail();
 
-    Livewire::test(EditDocument::class, ['record' => $document->getRouteKey()])
-        ->fillForm([
-            'user_id' => $author->id,
-            'category_id' => $category->id,
-            'school_type_id' => $schoolType->id,
-            'grade_id' => null,
-            'subject_id' => $subject->id,
-            'title' => 'Posodobljeno gradivo',
-            'slug' => 'posodobljeno-gradivo',
-            'description' => 'Novi opis',
-            'topic' => 'Tema 2',
-            'keywords' => 'matematika',
-        ])
-        ->call('save')
-        ->assertHasNoFormErrors()
-        ->assertNotified();
-
-    expect($document->fresh()->title)->toBe('Posodobljeno gradivo');
-    expect($document->fresh()->grade_id)->toBeNull();
+    expect($document->title)->toBe('Novo gradivo');
+    expect($document->grade_id)->toBe($grade->id);
 });
 
-it('shows document sub navigation pages for downloads, comments and ratings', function () {
+it('shows document sub navigation pages and frontend edit link', function () {
     $document = Document::factory()->create([
         'title' => 'Relacijski test dokumenta',
     ]);
@@ -158,7 +138,9 @@ it('shows document sub navigation pages for downloads, comments and ratings', fu
         ->assertOk()
         ->assertSee('Relacijski test dokumenta')
         ->assertSeeHtml('fi-page-has-sub-navigation')
-        ->assertSeeHtml('fi-page-has-sub-navigation-start');
+        ->assertSeeHtml('fi-page-has-sub-navigation-start')
+        ->assertSee(DocumentResource::getFrontendEditUrl($document), escape: false)
+        ->assertDontSee(DocumentResource::getUrl('edit', ['record' => $document]), escape: false);
 
     Livewire::test(ManageDocumentDownloads::class, ['record' => $document->getRouteKey()])
         ->assertOk()
