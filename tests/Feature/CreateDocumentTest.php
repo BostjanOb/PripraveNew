@@ -2,6 +2,7 @@
 
 use App\Models\Category;
 use App\Models\Document;
+use App\Models\DocumentFile;
 use App\Models\Grade;
 use App\Models\SchoolType;
 use App\Models\Subject;
@@ -11,6 +12,22 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+
+function storeDocumentZip(int $documentId, array $files): void
+{
+    $tempPath = tempnam(sys_get_temp_dir(), 'document_test_zip_');
+    $zip = new \ZipArchive;
+    $zip->open($tempPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+    foreach ($files as $name => $content) {
+        $zip->addFromString($name, $content);
+    }
+
+    $zip->close();
+
+    Storage::put("documents/{$documentId}/files.zip", file_get_contents($tempPath));
+    unlink($tempPath);
+}
 
 // ── Access control ──────────────────────────────────────────────────────────
 
@@ -51,15 +68,15 @@ it('creates a document with priprava category', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'priprava')
-        ->set('schoolTypeId', (string) $schoolType->id)
-        ->set('gradeId', (string) $grade->id)
-        ->set('subjectId', (string) $subject->id)
-        ->set('title', 'Test priprava za slovenščino')
-        ->set('topic', 'Branje')
-        ->set('keywords', 'slovenščina, branje')
-        ->set('description', 'Testni opis')
-        ->set('files', [$file])
+        ->set('form.categoryType', 'priprava')
+        ->set('form.schoolTypeId', (string) $schoolType->id)
+        ->set('form.gradeId', (string) $grade->id)
+        ->set('form.subjectId', (string) $subject->id)
+        ->set('form.title', 'Test priprava za slovenščino')
+        ->set('form.topic', 'Branje')
+        ->set('form.keywords', 'slovenščina, branje')
+        ->set('form.description', 'Testni opis')
+        ->set('form.files', [$file])
         ->call('submit')
         ->assertHasNoErrors()
         ->assertSet('submitted', true);
@@ -99,13 +116,13 @@ it('creates a document with ostalo category', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'ostalo')
-        ->set('ostaloCategory', (string) $subcategory->id)
-        ->set('schoolTypeId', (string) $schoolType->id)
-        ->set('gradeId', (string) $grade->id)
-        ->set('subjectId', (string) $subject->id)
-        ->set('title', 'Učni list za matematiko')
-        ->set('files', [$file])
+        ->set('form.categoryType', 'ostalo')
+        ->set('form.ostaloCategory', (string) $subcategory->id)
+        ->set('form.schoolTypeId', (string) $schoolType->id)
+        ->set('form.gradeId', (string) $grade->id)
+        ->set('form.subjectId', (string) $subject->id)
+        ->set('form.title', 'Učni list za matematiko')
+        ->set('form.files', [$file])
         ->call('submit')
         ->assertHasNoErrors()
         ->assertSet('submitted', true);
@@ -128,13 +145,13 @@ it('creates a new subject via createSubject action', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'priprava')
-        ->set('schoolTypeId', (string) $schoolType->id)
-        ->set('gradeId', (string) $grade->id)
-        ->set('subjectSearch', 'Novi predmet za test')
+        ->set('form.categoryType', 'priprava')
+        ->set('form.schoolTypeId', (string) $schoolType->id)
+        ->set('form.gradeId', (string) $grade->id)
+        ->set('form.subjectSearch', 'Novi predmet za test')
         ->call('createSubject')
-        ->set('title', 'Priprava z novim predmetom')
-        ->set('files', [$file])
+        ->set('form.title', 'Priprava z novim predmetom')
+        ->set('form.files', [$file])
         ->call('submit')
         ->assertHasNoErrors()
         ->assertSet('submitted', true);
@@ -147,6 +164,272 @@ it('creates a new subject via createSubject action', function () {
     expect($document->subject_id)->toBe($subject->id);
 });
 
+it('populates document fields when editing', function () {
+    $user = User::factory()->create();
+    Category::factory()->create(['id' => 1, 'name' => 'Priprava', 'slug' => 'priprava']);
+    Category::factory()->create(['id' => 2, 'name' => 'Ostalo', 'slug' => 'ostalo']);
+    $subcategory = Category::factory()->create(['parent_id' => 2, 'name' => 'Učni list', 'slug' => 'ucni-list']);
+    $schoolType = SchoolType::factory()->create();
+    $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
+    $subject->schoolTypes()->syncWithoutDetaching([$schoolType->id]);
+
+    $document = Document::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => $subcategory->id,
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+        'title' => 'Obstoječe gradivo',
+        'topic' => 'Tematika',
+        'keywords' => 'ena, dve',
+        'description' => 'Opis gradiva',
+    ]);
+
+    DocumentFile::factory()->create([
+        'document_id' => $document->id,
+        'original_name' => 'obstojeci.pdf',
+        'storage_path' => "documents/{$document->id}/files.zip",
+        'extension' => 'pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 1024,
+    ]);
+
+    Livewire::actingAs($user)
+        ->withQueryParams(['uredi' => $document->id])
+        ->test(\App\Livewire\CreateDocument::class)
+        ->assertSet('editingDocumentId', $document->id)
+        ->assertSet('form.categoryType', 'ostalo')
+        ->assertSet('form.ostaloCategory', (string) $subcategory->id)
+        ->assertSet('form.schoolTypeId', (string) $schoolType->id)
+        ->assertSet('form.gradeId', (string) $grade->id)
+        ->assertSet('form.subjectId', (string) $subject->id)
+        ->assertSet('form.title', 'Obstoječe gradivo')
+        ->assertSet('form.topic', 'Tematika')
+        ->assertSet('form.keywords', 'ena, dve')
+        ->assertSet('form.description', 'Opis gradiva')
+        ->assertSet('form.existingFiles.0.name', 'obstojeci.pdf');
+});
+
+it('updates an existing document without requiring new files', function () {
+    Storage::fake();
+
+    $user = User::factory()->create();
+    Category::factory()->create(['id' => 1, 'name' => 'Priprava', 'slug' => 'priprava']);
+    Category::factory()->create(['id' => 2, 'name' => 'Ostalo', 'slug' => 'ostalo']);
+    $subcategory = Category::factory()->create(['parent_id' => 2, 'name' => 'Učni list', 'slug' => 'ucni-list']);
+    $schoolType = SchoolType::factory()->create();
+    $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
+    $subject->schoolTypes()->syncWithoutDetaching([$schoolType->id]);
+
+    $document = Document::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => $subcategory->id,
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+        'title' => 'Stari naslov',
+        'topic' => 'Stara tema',
+        'keywords' => 'staro',
+        'description' => 'Stari opis',
+    ]);
+
+    Storage::put("documents/{$document->id}/files.zip", 'existing-file');
+
+    DocumentFile::factory()->create([
+        'document_id' => $document->id,
+        'original_name' => 'obstojeci.pdf',
+        'storage_path' => "documents/{$document->id}/files.zip",
+        'extension' => 'pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 1024,
+    ]);
+
+    Livewire::actingAs($user)
+        ->withQueryParams(['uredi' => $document->id])
+        ->test(\App\Livewire\CreateDocument::class)
+        ->set('form.categoryType', 'priprava')
+        ->set('form.ostaloCategory', '')
+        ->set('form.title', 'Posodobljen naslov')
+        ->set('form.topic', 'Nova tema')
+        ->set('form.keywords', 'novo, kljucno')
+        ->set('form.description', 'Posodobljen opis')
+        ->set('form.files', [])
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSet('submitted', true);
+
+    expect(Document::count())->toBe(1);
+
+    $document->refresh()->load('files');
+
+    expect($document->category_id)->toBe(1)
+        ->and($document->title)->toBe('Posodobljen naslov')
+        ->and($document->topic)->toBe('Nova tema')
+        ->and($document->keywords)->toBe('novo, kljucno')
+        ->and($document->description)->toBe('Posodobljen opis');
+
+    expect($document->files)->toHaveCount(1)
+        ->and($document->files->first()->original_name)->toBe('obstojeci.pdf');
+
+    Storage::assertExists("documents/{$document->id}/files.zip");
+});
+
+it('appends new files to existing document files during editing', function () {
+    Storage::fake();
+
+    $user = User::factory()->create();
+    Category::factory()->create(['id' => 1, 'name' => 'Priprava', 'slug' => 'priprava']);
+    $schoolType = SchoolType::factory()->create();
+    $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
+    $subject->schoolTypes()->syncWithoutDetaching([$schoolType->id]);
+
+    $document = Document::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => 1,
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+    ]);
+
+    storeDocumentZip($document->id, [
+        'old.pdf' => 'old file content',
+    ]);
+
+    DocumentFile::factory()->create([
+        'document_id' => $document->id,
+        'original_name' => 'old.pdf',
+        'storage_path' => "documents/{$document->id}/files.zip",
+        'extension' => 'pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 1024,
+    ]);
+
+    $newFile = UploadedFile::fake()->create('novo.pdf', 2048, 'application/pdf');
+
+    Livewire::actingAs($user)
+        ->withQueryParams(['uredi' => $document->id])
+        ->test(\App\Livewire\CreateDocument::class)
+        ->set('form.title', 'Gradivo z novo datoteko')
+        ->set('form.files', [$newFile])
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $document->refresh()->load('files');
+
+    expect($document->files)->toHaveCount(2);
+    expect($document->files->pluck('original_name')->all())
+        ->toContain('old.pdf')
+        ->toContain('novo.pdf');
+
+    Storage::assertExists("documents/{$document->id}/files.zip");
+});
+
+it('removes selected existing files during editing', function () {
+    Storage::fake();
+
+    $user = User::factory()->create();
+    Category::factory()->create(['id' => 1, 'name' => 'Priprava', 'slug' => 'priprava']);
+    $schoolType = SchoolType::factory()->create();
+    $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
+    $subject->schoolTypes()->syncWithoutDetaching([$schoolType->id]);
+
+    $document = Document::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => 1,
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+    ]);
+
+    storeDocumentZip($document->id, [
+        'first.pdf' => 'first file content',
+        'second.pdf' => 'second file content',
+    ]);
+
+    $firstFile = DocumentFile::factory()->create([
+        'document_id' => $document->id,
+        'original_name' => 'first.pdf',
+        'storage_path' => "documents/{$document->id}/files.zip",
+        'extension' => 'pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 1024,
+    ]);
+
+    $secondFile = DocumentFile::factory()->create([
+        'document_id' => $document->id,
+        'original_name' => 'second.pdf',
+        'storage_path' => "documents/{$document->id}/files.zip",
+        'extension' => 'pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 1024,
+    ]);
+
+    Livewire::actingAs($user)
+        ->withQueryParams(['uredi' => $document->id])
+        ->test(\App\Livewire\CreateDocument::class)
+        ->call('removeExistingFile', $firstFile->id)
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $document->refresh()->load('files');
+
+    expect($document->files)->toHaveCount(1)
+        ->and($document->files->first()->original_name)->toBe('second.pdf')
+        ->and(DocumentFile::withTrashed()->find($firstFile->id)?->trashed())->toBeTrue()
+        ->and(DocumentFile::find($secondFile->id))->not->toBeNull();
+
+    Storage::assertExists("documents/{$document->id}/files.zip");
+});
+
+it('requires at least one file to remain when editing', function () {
+    Storage::fake();
+
+    $user = User::factory()->create();
+    Category::factory()->create(['id' => 1, 'name' => 'Priprava', 'slug' => 'priprava']);
+    $schoolType = SchoolType::factory()->create();
+    $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
+    $subject->schoolTypes()->syncWithoutDetaching([$schoolType->id]);
+
+    $document = Document::factory()->create([
+        'user_id' => $user->id,
+        'category_id' => 1,
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+    ]);
+
+    DocumentFile::factory()->create([
+        'document_id' => $document->id,
+        'original_name' => 'only.pdf',
+        'storage_path' => "documents/{$document->id}/files.zip",
+        'extension' => 'pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 1024,
+    ]);
+
+    Livewire::actingAs($user)
+        ->withQueryParams(['uredi' => $document->id])
+        ->test(\App\Livewire\CreateDocument::class)
+        ->call('removeExistingFile', $document->files()->firstOrFail()->id)
+        ->call('submit')
+        ->assertHasErrors(['form.files']);
+});
+
+it('forbids editing documents owned by another user', function () {
+    $owner = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $document = Document::factory()->create(['user_id' => $owner->id]);
+
+    $this->actingAs($otherUser)
+        ->get(route('document.create', ['uredi' => $document->id]))
+        ->assertForbidden();
+});
+
 // ── Validation ──────────────────────────────────────────────────────────────
 
 it('requires title and files', function () {
@@ -157,14 +440,14 @@ it('requires title and files', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'priprava')
-        ->set('schoolTypeId', (string) $schoolType->id)
-        ->set('gradeId', (string) $grade->id)
-        ->set('subjectId', (string) $subject->id)
-        ->set('title', '')
-        ->set('files', [])
+        ->set('form.categoryType', 'priprava')
+        ->set('form.schoolTypeId', (string) $schoolType->id)
+        ->set('form.gradeId', (string) $grade->id)
+        ->set('form.subjectId', (string) $subject->id)
+        ->set('form.title', '')
+        ->set('form.files', [])
         ->call('submit')
-        ->assertHasErrors(['title' => 'required', 'files' => 'required']);
+        ->assertHasErrors(['form.title' => 'required', 'form.files' => 'required']);
 });
 
 it('requires ostaloCategory when categoryType is ostalo', function () {
@@ -177,15 +460,15 @@ it('requires ostaloCategory when categoryType is ostalo', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'ostalo')
-        ->set('ostaloCategory', '')
-        ->set('schoolTypeId', (string) $schoolType->id)
-        ->set('gradeId', (string) $grade->id)
-        ->set('subjectId', (string) $subject->id)
-        ->set('title', 'Test')
-        ->set('files', [$file])
+        ->set('form.categoryType', 'ostalo')
+        ->set('form.ostaloCategory', '')
+        ->set('form.schoolTypeId', (string) $schoolType->id)
+        ->set('form.gradeId', (string) $grade->id)
+        ->set('form.subjectId', (string) $subject->id)
+        ->set('form.title', 'Test')
+        ->set('form.files', [$file])
         ->call('submit')
-        ->assertHasErrors(['ostaloCategory' => 'required_if']);
+        ->assertHasErrors(['form.ostaloCategory' => 'required_if']);
 });
 
 it('requires school type and grade', function () {
@@ -195,13 +478,13 @@ it('requires school type and grade', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'priprava')
-        ->set('schoolTypeId', '')
-        ->set('gradeId', '')
-        ->set('title', 'Test')
-        ->set('files', [$file])
+        ->set('form.categoryType', 'priprava')
+        ->set('form.schoolTypeId', '')
+        ->set('form.gradeId', '')
+        ->set('form.title', 'Test')
+        ->set('form.files', [$file])
         ->call('submit')
-        ->assertHasErrors(['schoolTypeId' => 'required', 'gradeId' => 'required']);
+        ->assertHasErrors(['form.schoolTypeId' => 'required', 'form.gradeId' => 'required']);
 });
 
 it('rejects subject that is not linked to selected school type', function () {
@@ -215,14 +498,14 @@ it('rejects subject that is not linked to selected school type', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'priprava')
-        ->set('schoolTypeId', (string) $schoolType->id)
-        ->set('gradeId', (string) $grade->id)
-        ->set('subjectId', (string) $subject->id)
-        ->set('title', 'Test')
-        ->set('files', [$file])
+        ->set('form.categoryType', 'priprava')
+        ->set('form.schoolTypeId', (string) $schoolType->id)
+        ->set('form.gradeId', (string) $grade->id)
+        ->set('form.subjectId', (string) $subject->id)
+        ->set('form.title', 'Test')
+        ->set('form.files', [$file])
         ->call('submit')
-        ->assertHasErrors(['subjectId']);
+        ->assertHasErrors(['form.subjectId']);
 });
 
 it('rejects files with invalid extensions', function () {
@@ -235,14 +518,14 @@ it('rejects files with invalid extensions', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'priprava')
-        ->set('schoolTypeId', (string) $schoolType->id)
-        ->set('gradeId', (string) $grade->id)
-        ->set('subjectId', (string) $subject->id)
-        ->set('title', 'Test')
-        ->set('files', [$file])
+        ->set('form.categoryType', 'priprava')
+        ->set('form.schoolTypeId', (string) $schoolType->id)
+        ->set('form.gradeId', (string) $grade->id)
+        ->set('form.subjectId', (string) $subject->id)
+        ->set('form.title', 'Test')
+        ->set('form.files', [$file])
         ->call('submit')
-        ->assertHasErrors(['files.0']);
+        ->assertHasErrors(['form.files.0']);
 });
 
 // ── Slug uniqueness ─────────────────────────────────────────────────────────
@@ -263,12 +546,12 @@ it('generates unique slugs', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('categoryType', 'priprava')
-        ->set('schoolTypeId', (string) $schoolType->id)
-        ->set('gradeId', (string) $grade->id)
-        ->set('subjectId', (string) $subject->id)
-        ->set('title', 'Isti naslov')
-        ->set('files', [$file])
+        ->set('form.categoryType', 'priprava')
+        ->set('form.schoolTypeId', (string) $schoolType->id)
+        ->set('form.gradeId', (string) $grade->id)
+        ->set('form.subjectId', (string) $subject->id)
+        ->set('form.title', 'Isti naslov')
+        ->set('form.files', [$file])
         ->call('submit')
         ->assertHasNoErrors()
         ->assertSet('submitted', true);
@@ -288,13 +571,13 @@ it('resets the form', function () {
 
     Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('title', 'Nekaj')
+        ->set('form.title', 'Nekaj')
         ->set('submitted', true)
         ->call('resetForm')
-        ->assertSet('title', '')
+        ->assertSet('form.title', '')
         ->assertSet('submitted', false)
-        ->assertSet('categoryType', 'priprava')
-        ->assertSet('files', []);
+        ->assertSet('form.categoryType', 'priprava')
+        ->assertSet('form.files', []);
 });
 
 // ── Remove file ─────────────────────────────────────────────────────────────
@@ -307,11 +590,11 @@ it('removes a file from the list', function () {
 
     $component = Livewire::actingAs($user)
         ->test(\App\Livewire\CreateDocument::class)
-        ->set('files', [$file1, $file2]);
+        ->set('form.files', [$file1, $file2]);
 
-    expect($component->get('files'))->toHaveCount(2);
+    expect($component->get('form.files'))->toHaveCount(2);
 
     $component->call('removeFile', 0);
 
-    expect($component->get('files'))->toHaveCount(1);
+    expect($component->get('form.files'))->toHaveCount(1);
 });

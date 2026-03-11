@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\SchoolTypes;
 
+use App\Filament\Resources\SchoolTypes\Pages\EditSchoolType;
 use App\Filament\Resources\SchoolTypes\Pages\ManageSchoolTypes;
+use App\Filament\Resources\SchoolTypes\RelationManagers\SubjectsRelationManager;
 use App\Models\SchoolType;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -70,13 +72,22 @@ class SchoolTypeResource extends Resource
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->recordUrl(fn (SchoolType $record): string => static::getUrl('edit', ['record' => $record]));
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            SubjectsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
     {
         return [
             'index' => ManageSchoolTypes::route('/'),
+            'edit' => EditSchoolType::route('/{record}/edit'),
         ];
     }
 }

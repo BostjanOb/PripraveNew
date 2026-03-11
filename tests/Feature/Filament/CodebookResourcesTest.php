@@ -2,7 +2,9 @@
 
 use App\Filament\Resources\Categories\Pages\ManageCategories;
 use App\Filament\Resources\Grades\Pages\ManageGrades;
+use App\Filament\Resources\SchoolTypes\Pages\EditSchoolType;
 use App\Filament\Resources\SchoolTypes\Pages\ManageSchoolTypes;
+use App\Filament\Resources\Subjects\Pages\EditSubject;
 use App\Filament\Resources\Subjects\Pages\ManageSubjects;
 use App\Models\Category;
 use App\Models\Grade;
@@ -24,12 +26,13 @@ beforeEach(function () {
 it('loads codebook resource pages', function () {
     $schoolType = SchoolType::factory()->create();
     $grade = Grade::factory()->create();
-    $subject = Subject::factory()->create();
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
     $category = Category::factory()->create();
 
     Livewire::test(ManageSchoolTypes::class)
         ->assertOk()
-        ->assertCanSeeTableRecords([$schoolType]);
+        ->assertCanSeeTableRecords([$schoolType])
+        ->assertSee($subject->name);
 
     Livewire::test(ManageGrades::class)
         ->assertOk()
@@ -37,34 +40,52 @@ it('loads codebook resource pages', function () {
 
     Livewire::test(ManageSubjects::class)
         ->assertOk()
-        ->assertCanSeeTableRecords([$subject]);
+        ->assertCanSeeTableRecords([$subject])
+        ->assertSee($schoolType->name);
 
     Livewire::test(ManageCategories::class)
         ->assertOk()
         ->assertCanSeeTableRecords([$category]);
+
+    Livewire::test(EditSchoolType::class, ['record' => $schoolType->getRouteKey()])
+        ->assertOk()
+        ->assertSee($subject->name);
+
+    Livewire::test(EditSubject::class, ['record' => $subject->getKey()])
+        ->assertOk()
+        ->assertSee($schoolType->name);
 });
 
 it('creates and updates a school type', function () {
+    $firstSubject = Subject::factory()->create(['name' => 'Kemija']);
+    $secondSubject = Subject::factory()->create(['name' => 'Biologija']);
+
     Livewire::test(ManageSchoolTypes::class)
         ->callAction(TestAction::make(CreateAction::class), data: [
             'name' => 'Srednja šola',
             'slug' => 'srednja-sola',
             'sort_order' => 2,
+            'subjects' => [$firstSubject->id],
         ])
         ->assertNotified();
 
     $schoolType = SchoolType::query()->where('slug', 'srednja-sola')->firstOrFail();
 
-    Livewire::test(ManageSchoolTypes::class)
-        ->callAction(TestAction::make(EditAction::class)->table($schoolType), data: [
+    expect($schoolType->subjects()->pluck('subjects.id')->all())->toBe([$firstSubject->id]);
+
+    Livewire::test(EditSchoolType::class, ['record' => $schoolType->getRouteKey()])
+        ->fillForm([
             'name' => 'Posodobljena srednja šola',
             'slug' => 'posodobljena-srednja-sola',
             'sort_order' => 3,
+            'subjects' => [$secondSubject->id],
         ])
+        ->call('save')
         ->assertNotified();
 
-    expect($schoolType->fresh()->name)->toBe('Posodobljena srednja šola');
-    expect($schoolType->fresh()->sort_order)->toBe(3);
+    expect($schoolType->fresh()->name)->toBe('Posodobljena srednja šola')
+        ->and($schoolType->fresh()->sort_order)->toBe(3)
+        ->and($schoolType->fresh()->subjects()->pluck('subjects.id')->all())->toBe([$secondSubject->id]);
 });
 
 it('creates and updates a grade', function () {
@@ -96,28 +117,30 @@ it('creates and updates a grade', function () {
 });
 
 it('creates and updates a subject', function () {
-    $schoolType = SchoolType::factory()->create();
+    $firstSchoolType = SchoolType::factory()->create();
+    $secondSchoolType = SchoolType::factory()->create();
 
     Livewire::test(ManageSubjects::class)
         ->callAction(TestAction::make(CreateAction::class), data: [
-            'school_type_id' => $schoolType->id,
+            'schoolTypes' => [$firstSchoolType->id],
             'name' => 'Kemija',
         ])
         ->assertNotified();
 
-    $subject = Subject::query()
-        ->where('school_type_id', $schoolType->id)
-        ->where('name', 'Kemija')
-        ->firstOrFail();
+    $subject = Subject::query()->where('name', 'Kemija')->firstOrFail();
 
-    Livewire::test(ManageSubjects::class)
-        ->callAction(TestAction::make(EditAction::class)->table($subject), data: [
-            'school_type_id' => $schoolType->id,
+    expect($subject->schoolTypes()->pluck('school_types.id')->all())->toBe([$firstSchoolType->id]);
+
+    Livewire::test(EditSubject::class, ['record' => $subject->getKey()])
+        ->fillForm([
+            'schoolTypes' => [$secondSchoolType->id],
             'name' => 'Biologija',
         ])
+        ->call('save')
         ->assertNotified();
 
-    expect($subject->fresh()->name)->toBe('Biologija');
+    expect($subject->fresh()->name)->toBe('Biologija')
+        ->and($subject->fresh()->schoolTypes()->pluck('school_types.id')->all())->toBe([$secondSchoolType->id]);
 });
 
 it('creates and updates a category', function () {

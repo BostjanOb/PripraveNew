@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Subjects;
 
+use App\Filament\Resources\Subjects\Pages\EditSubject;
 use App\Filament\Resources\Subjects\Pages\ManageSubjects;
+use App\Filament\Resources\Subjects\RelationManagers\SchoolTypesRelationManager;
 use App\Models\Subject;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -38,16 +40,17 @@ class SubjectResource extends Resource
     {
         return $schema
             ->components([
-                Select::make('school_type_id')
-                    ->label('Tip šole')
-                    ->relationship('schoolType', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
                 TextInput::make('name')
                     ->label('Naziv')
                     ->required()
                     ->maxLength(255),
+                Select::make('schoolTypes')
+                    ->label('Tipi šol')
+                    ->relationship('schoolTypes', 'name')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->required(),
             ]);
     }
 
@@ -55,13 +58,14 @@ class SubjectResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('schoolType.name')
-                    ->label('Tip šole')
-                    ->searchable(),
                 TextColumn::make('name')
                     ->label('Naziv')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('schoolTypes.name')
+                    ->label('Tipi šol')
+                    ->bulleted()
+                    ->searchable(),
             ])
             ->defaultSort('name')
             ->filters([
@@ -78,10 +82,18 @@ class SubjectResource extends Resource
             ]);
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            SchoolTypesRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ManageSubjects::route('/'),
+            'edit' => EditSubject::route('/{record}/edit'),
         ];
     }
 }

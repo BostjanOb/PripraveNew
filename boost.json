@@ -17,9 +17,11 @@
     ],
     "sail": false,
     "skills": [
+        "scout-development",
+        "socialite-development",
         "fluxui-development",
         "pest-testing",
         "tailwindcss-development",
-        "developing-with-fortify"
+        "fortify-development"
     ]
 }

@@ -2,50 +2,33 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Forms\DocumentForm;
 use App\Models\Category;
 use App\Models\Document;
-use App\Models\DocumentFile;
 use App\Models\Grade;
 use App\Models\SchoolType;
 use App\Models\Subject;
-use Closure;
+use App\Services\Documents\DocumentFileSyncService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use ZipArchive;
 
 class CreateDocument extends Component
 {
     use WithFileUploads;
 
-    public string $categoryType = 'priprava';
+    #[Url(as: 'uredi')]
+    public ?int $editingDocumentId = null;
 
-    public string $ostaloCategory = '';
-
-    public string $schoolTypeId = '';
-
-    public string $gradeId = '';
-
-    public string $subjectId = '';
-
-    public string $subjectSearch = '';
-
-    public string $title = '';
-
-    public string $topic = '';
-
-    public string $keywords = '';
-
-    public string $description = '';
-
-    /** @var array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
-    public array $files = [];
+    public DocumentForm $form;
 
     public bool $submitted = false;
+
+    public ?string $editingDocumentSlug = null;
 
     /** @var \Illuminate\Database\Eloquent\Collection<int, SchoolType> */
     public $schoolTypes;
@@ -56,95 +39,53 @@ class CreateDocument extends Component
     /** @var \Illuminate\Database\Eloquent\Collection<int, Category> */
     public $ostaloCategories;
 
+    protected DocumentFileSyncService $documentFileSyncService;
+
+    public function boot(DocumentFileSyncService $documentFileSyncService): void
+    {
+        $this->documentFileSyncService = $documentFileSyncService;
+    }
+
     public function mount(): void
     {
         $this->schoolTypes = SchoolType::orderBy('sort_order')->get();
         $this->grades = Grade::orderBy('sort_order')->get();
         $this->ostaloCategories = Category::where('parent_id', 2)->orderBy('sort_order')->get();
+
+        if ($this->editingDocumentId) {
+            $document = $this->getEditableDocument();
+
+            $this->editingDocumentSlug = $document->slug;
+            $this->form->fillFromDocument($document);
+        }
     }
 
     public function submit(): void
     {
-        $allowedExtensions = implode(',', DocumentFile::ALLOWED_EXTENSIONS);
+        $this->form->validate();
 
-        $this->validate([
-            'categoryType' => ['required', 'in:priprava,ostalo'],
-            'ostaloCategory' => ['required_if:categoryType,ostalo', 'nullable', 'exists:categories,id'],
-            'schoolTypeId' => ['required', 'exists:school_types,id'],
-            'gradeId' => ['required', 'exists:grades,id'],
-            'subjectId' => [
-                'required',
-                Rule::exists('subjects', 'id'),
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if (! $this->schoolTypeId) {
-                        return;
-                    }
+        if ($this->isEditing() && $this->form->totalFilesCount() === 0) {
+            $this->addError('form.files', 'Gradivo mora vsebovati vsaj eno datoteko.');
 
-                    $subjectBelongsToSchoolType = Subject::whereKey((int) $value)
-                        ->forSchoolType((int) $this->schoolTypeId)
-                        ->exists();
-
-                    if (! $subjectBelongsToSchoolType) {
-                        $fail('Izbran predmet ne pripada izbranemu tipu šole.');
-                    }
-                },
-            ],
-            'title' => ['required', 'max:200'],
-            'topic' => ['nullable', 'max:200'],
-            'keywords' => ['nullable', 'max:500'],
-            'description' => ['nullable'],
-            'files' => ['required', 'array', 'min:1'],
-            'files.*' => ['file', 'max:20480', 'mimes:'.$allowedExtensions],
-        ]);
+            return;
+        }
 
         DB::transaction(function () {
-            $categoryId = $this->categoryType === 'priprava' ? 1 : (int) $this->ostaloCategory;
+            $document = $this->isEditing()
+                ? $this->updateDocument()
+                : $this->createDocument();
 
-            $slug = Document::generateUniqueSlug($this->title);
-
-            $document = Document::create([
-                'user_id' => auth()->id(),
-                'category_id' => $categoryId,
-                'school_type_id' => (int) $this->schoolTypeId,
-                'grade_id' => (int) $this->gradeId,
-                'subject_id' => (int) $this->subjectId,
-                'title' => $this->title,
-                'slug' => $slug,
-                'description' => $this->description ?: null,
-                'topic' => $this->topic ?: null,
-                'keywords' => $this->keywords ?: null,
-                'downloads_count' => 0,
-                'views_count' => 0,
-                'rating_count' => 0,
-                'rating_avg' => 0,
-            ]);
-
-            $zipDir = "documents/{$document->id}";
-            $zipPath = "{$zipDir}/files.zip";
-
-            $tempPath = tempnam(sys_get_temp_dir(), 'doc_zip_');
-            $zip = new ZipArchive;
-            $zip->open($tempPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-
-            foreach ($this->files as $file) {
-                $zip->addFromString($file->getClientOriginalName(), file_get_contents($file->getRealPath()));
+            if (! $this->isEditing() || $this->form->files !== [] || $this->form->hasRemovedExistingFiles($document)) {
+                $this->documentFileSyncService->sync(
+                    $document,
+                    $this->form->files,
+                    $this->form->retainedFileIds(),
+                );
             }
 
-            $zip->close();
-
-            Storage::put($zipPath, file_get_contents($tempPath));
-            unlink($tempPath);
-
-            foreach ($this->files as $file) {
-                DocumentFile::create([
-                    'document_id' => $document->id,
-                    'original_name' => $file->getClientOriginalName(),
-                    'storage_path' => $zipPath,
-                    'size_bytes' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
-                    'extension' => strtolower($file->getClientOriginalExtension()),
-                ]);
-            }
+            $freshDocument = $document->fresh('files');
+            $this->editingDocumentSlug = $freshDocument?->slug;
+            $this->form->syncExistingFiles($freshDocument ?? $document);
         });
 
         $this->submitted = true;
@@ -154,53 +95,121 @@ class CreateDocument extends Component
     #[Computed]
     public function filteredSubjects(): \Illuminate\Database\Eloquent\Collection
     {
-        if (! $this->schoolTypeId) {
+        if (! $this->form->schoolTypeId) {
             return new \Illuminate\Database\Eloquent\Collection;
         }
 
         return Subject::orderBy('name')
-            ->forSchoolType((int) $this->schoolTypeId)
-            ->when($this->subjectSearch, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
+            ->forSchoolType((int) $this->form->schoolTypeId)
+            ->when($this->form->subjectSearch, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
             ->get();
     }
 
     public function createSubject(): void
     {
         $this->validate([
-            'subjectSearch' => ['required', 'min:2', 'max:255'],
-            'schoolTypeId' => ['required', 'exists:school_types,id'],
+            'form.subjectSearch' => ['required', 'min:2', 'max:255'],
+            'form.schoolTypeId' => ['required', 'exists:school_types,id'],
         ]);
 
         $subject = Subject::firstOrCreate(
             [
-                'name' => trim($this->subjectSearch),
-                'school_type_id' => (int) $this->schoolTypeId,
+                'name' => trim($this->form->subjectSearch),
+                'school_type_id' => (int) $this->form->schoolTypeId,
             ],
         );
-        $subject->schoolTypes()->syncWithoutDetaching([(int) $this->schoolTypeId]);
+        $subject->schoolTypes()->syncWithoutDetaching([(int) $this->form->schoolTypeId]);
 
-        $this->subjectId = (string) $subject->id;
-        $this->subjectSearch = '';
+        $this->form->subjectId = (string) $subject->id;
+        $this->form->subjectSearch = '';
     }
 
     public function removeFile(int $index): void
     {
-        unset($this->files[$index]);
-        $this->files = array_values($this->files);
+        $this->form->removeFile($index);
+    }
+
+    public function removeExistingFile(int $fileId): void
+    {
+        $this->form->removeExistingFile($fileId);
     }
 
     public function resetForm(): void
     {
-        $this->reset([
-            'categoryType', 'ostaloCategory', 'schoolTypeId', 'gradeId',
-            'subjectId', 'subjectSearch', 'title', 'topic', 'keywords',
-            'description', 'files', 'submitted',
-        ]);
+        $this->resetValidation();
+
+        if ($this->isEditing()) {
+            $document = $this->getEditableDocument();
+
+            $this->editingDocumentSlug = $document->slug;
+            $this->form->fillFromDocument($document);
+            $this->submitted = false;
+
+            return;
+        }
+
+        $this->form->reset();
+        $this->submitted = false;
+        $this->editingDocumentSlug = null;
     }
 
     public function render(): View
     {
         return view('livewire.create-document')
-            ->layout('components.layouts.app', ['title' => 'Dodajanje gradiva']);
+            ->layout('components.layouts.app', ['title' => $this->isEditing() ? 'Urejanje gradiva' : 'Dodajanje gradiva']);
+    }
+
+    public function isEditing(): bool
+    {
+        return $this->editingDocumentId !== null;
+    }
+
+    protected function getEditableDocument(): Document
+    {
+        $document = Document::with('category', 'files')->findOrFail($this->editingDocumentId);
+
+        Gate::authorize('update', $document);
+
+        return $document;
+    }
+
+    protected function createDocument(): Document
+    {
+        return Document::create([
+            'user_id' => auth()->id(),
+            'category_id' => $this->form->categoryId(),
+            'school_type_id' => (int) $this->form->schoolTypeId,
+            'grade_id' => (int) $this->form->gradeId,
+            'subject_id' => (int) $this->form->subjectId,
+            'title' => $this->form->title,
+            'slug' => Document::generateUniqueSlug($this->form->title),
+            'description' => $this->form->description ?: null,
+            'topic' => $this->form->topic ?: null,
+            'keywords' => $this->form->keywords ?: null,
+            'downloads_count' => 0,
+            'views_count' => 0,
+            'rating_count' => 0,
+            'rating_avg' => 0,
+        ]);
+    }
+
+    protected function updateDocument(): Document
+    {
+        $document = $this->getEditableDocument();
+
+        $document->update([
+            'category_id' => $this->form->categoryId(),
+            'school_type_id' => (int) $this->form->schoolTypeId,
+            'grade_id' => (int) $this->form->gradeId,
+            'subject_id' => (int) $this->form->subjectId,
+            'title' => $this->form->title,
+            'description' => $this->form->description ?: null,
+            'topic' => $this->form->topic ?: null,
+            'keywords' => $this->form->keywords ?: null,
+        ]);
+
+        $this->editingDocumentSlug = $document->slug;
+
+        return $document;
     }
 }

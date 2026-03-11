@@ -49,6 +49,11 @@ class GradeResource extends Resource
                     ->label('Naziv')
                     ->required()
                     ->maxLength(255),
+                TextInput::make('sort_order')
+                    ->label('Vrstni red')
+                    ->numeric()
+                    ->default(0)
+                    ->required(),
             ]);
     }
 
