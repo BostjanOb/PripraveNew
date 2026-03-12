@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Document;
+use App\Models\User;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -13,7 +14,7 @@ class DownloadedDocumentsTab extends Component
 
     public function render(): View
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         $downloadedIds = $user->downloadRecords()->pluck('document_id');

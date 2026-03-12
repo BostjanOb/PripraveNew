@@ -4,9 +4,11 @@ use App\Livewire\LatestDocuments;
 use App\Models\Document;
 use App\Models\SchoolType;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 // ── Homepage ──────────────────────────────────────────────────────────────────
 
@@ -87,6 +89,21 @@ it('does not show admin panel link in user dropdown for non-admin users', functi
 });
 
 // ── LatestDocuments Livewire component ────────────────────────────────────────
+
+it('caches homepage data for 30 minutes', function () {
+    SchoolType::factory()->count(3)->create();
+    Document::factory()->count(2)->create();
+
+    Cache::flush();
+
+    $this->get(route('home'))->assertSuccessful();
+
+    expect(Cache::has('index.document_count'))->toBeTrue()
+        ->and(Cache::has('index.user_count'))->toBeTrue()
+        ->and(Cache::has('index.download_count'))->toBeTrue()
+        ->and(Cache::has('index.average_rating'))->toBeTrue()
+        ->and(Cache::has('index.school_types'))->toBeTrue();
+});
 
 it('shows latest documents', function () {
     $doc = Document::factory()->create(['title' => 'Testna priprava za matematiko']);

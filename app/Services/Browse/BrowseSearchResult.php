@@ -2,12 +2,13 @@
 
 namespace App\Services\Browse;
 
+use App\Models\Document;
 use Illuminate\Support\Collection;
 
 final readonly class BrowseSearchResult
 {
     /**
-     * @param  Collection<int, \App\Models\Document>  $documents
+     * @param  Collection<int, Document>  $documents
      * @param  array<string, array<int, int>>  $facetCounts
      */
     public function __construct(

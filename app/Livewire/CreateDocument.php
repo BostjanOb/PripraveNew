@@ -9,6 +9,7 @@ use App\Models\Grade;
 use App\Models\SchoolType;
 use App\Models\Subject;
 use App\Services\Documents\DocumentFileSyncService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -30,13 +31,13 @@ class CreateDocument extends Component
 
     public ?string $editingDocumentSlug = null;
 
-    /** @var \Illuminate\Database\Eloquent\Collection<int, SchoolType> */
+    /** @var Collection<int, SchoolType> */
     public $schoolTypes;
 
-    /** @var \Illuminate\Database\Eloquent\Collection<int, Grade> */
+    /** @var Collection<int, Grade> */
     public $grades;
 
-    /** @var \Illuminate\Database\Eloquent\Collection<int, Category> */
+    /** @var Collection<int, Category> */
     public $ostaloCategories;
 
     protected DocumentFileSyncService $documentFileSyncService;
@@ -91,12 +92,12 @@ class CreateDocument extends Component
         $this->submitted = true;
     }
 
-    /** @return \Illuminate\Database\Eloquent\Collection<int, Subject> */
+    /** @return Collection<int, Subject> */
     #[Computed]
-    public function filteredSubjects(): \Illuminate\Database\Eloquent\Collection
+    public function filteredSubjects(): Collection
     {
         if (! $this->form->schoolTypeId) {
-            return new \Illuminate\Database\Eloquent\Collection;
+            return new Collection;
         }
 
         return Subject::orderBy('name')

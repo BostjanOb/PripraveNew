@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\SchoolType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SchoolType>
+ * @extends Factory<SchoolType>
  */
 class SchoolTypeFactory extends Factory
 {

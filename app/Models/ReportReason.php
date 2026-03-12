@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\ReportReasonFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReportReason extends Model
 {
-    /** @use HasFactory<\Database\Factories\ReportReasonFactory> */
+    /** @use HasFactory<ReportReasonFactory> */
     use HasFactory;
 
     public function reports(): HasMany

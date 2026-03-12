@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Document;
+
 return [
 
     /*
@@ -140,7 +142,7 @@ return [
         'host' => env('MEILISEARCH_HOST', 'http://localhost:7700'),
         'key' => env('MEILISEARCH_KEY'),
         'index-settings' => [
-            App\Models\Document::class => [
+            Document::class => [
                 'filterableAttributes' => [
                     'school_type_id',
                     'school_type_slug',

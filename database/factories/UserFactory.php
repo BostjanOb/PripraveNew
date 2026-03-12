@@ -2,12 +2,14 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
@@ -50,8 +52,8 @@ class UserFactory extends Factory
      */
     public function withoutPassword(): static
     {
-        return $this->afterCreating(function (\App\Models\User $user) {
-            \Illuminate\Support\Facades\DB::table('users')
+        return $this->afterCreating(function (User $user) {
+            DB::table('users')
                 ->where('id', $user->id)
                 ->update(['password' => '']);
         });

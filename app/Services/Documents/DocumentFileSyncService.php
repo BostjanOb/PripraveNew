@@ -6,12 +6,13 @@ use App\Models\Document;
 use App\Models\DocumentFile;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use ZipArchive;
 
 class DocumentFileSyncService
 {
     /**
-     * @param  array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile>  $uploadedFiles
+     * @param  array<int, TemporaryUploadedFile>  $uploadedFiles
      * @param  array<int, int>  $retainedFileIds
      */
     public function sync(Document $document, array $uploadedFiles, array $retainedFileIds = []): void
@@ -60,7 +61,7 @@ class DocumentFileSyncService
 
     /**
      * @param  Collection<int, DocumentFile>  $retainedFiles
-     * @param  array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile>  $uploadedFiles
+     * @param  array<int, TemporaryUploadedFile>  $uploadedFiles
      */
     protected function storeFilesZip(Document $document, Collection $retainedFiles, array $uploadedFiles): string
     {

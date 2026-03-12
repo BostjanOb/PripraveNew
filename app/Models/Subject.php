@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\SubjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
 {
-    /** @use HasFactory<\Database\Factories\SubjectFactory> */
+    /** @use HasFactory<SubjectFactory> */
     use HasFactory;
 
     public function schoolTypes(): BelongsToMany

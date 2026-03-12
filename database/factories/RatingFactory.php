@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Document;
+use App\Models\Rating;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Rating>
+ * @extends Factory<Rating>
  */
 class RatingFactory extends Factory
 {

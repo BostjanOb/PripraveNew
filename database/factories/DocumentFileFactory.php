@@ -7,7 +7,7 @@ use App\Models\DocumentFile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\DocumentFile>
+ * @extends Factory<DocumentFile>
  */
 class DocumentFileFactory extends Factory
 {

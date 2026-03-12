@@ -4,12 +4,13 @@ namespace Database\Factories;
 
 use App\Enums\ReportStatus;
 use App\Models\Document;
+use App\Models\Report;
 use App\Models\ReportReason;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Report>
+ * @extends Factory<Report>
  */
 class ReportFactory extends Factory
 {

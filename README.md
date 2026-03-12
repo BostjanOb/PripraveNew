@@ -74,7 +74,7 @@ php artisan serve
 Start Meilisearch:
 
 ```bash
-docker compose -f docker/compose.yml up -d
+docker compose --project-directory . -f docker/compose.yml up -d
 ```
 
 Then sync index settings and import documents:

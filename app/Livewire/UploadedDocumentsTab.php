@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Document;
+use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -29,7 +30,7 @@ class UploadedDocumentsTab extends Component
 
     public function render(): View
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         $documents = $user

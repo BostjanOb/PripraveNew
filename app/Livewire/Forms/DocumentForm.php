@@ -7,6 +7,7 @@ use App\Models\DocumentFile;
 use App\Models\Subject;
 use Closure;
 use Illuminate\Validation\Rule;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
 
 class DocumentForm extends Form
@@ -33,7 +34,7 @@ class DocumentForm extends Form
 
     public string $description = '';
 
-    /** @var array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<int, TemporaryUploadedFile> */
     public array $files = [];
 
     /** @var array<int, array{id: int, name: string, extension: string, size: int}> */

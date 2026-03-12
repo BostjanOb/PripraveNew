@@ -3,9 +3,10 @@
 use App\Livewire\PublicUploadedDocuments;
 use App\Models\Document;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 // ── Route access ──────────────────────────────────────────────────────────────
 

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\User;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -12,7 +13,7 @@ class SavedDocumentsTab extends Component
 
     public function render(): View
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         $documents = $user

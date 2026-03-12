@@ -11,10 +11,12 @@ use App\Services\Browse\BrowseSearchInput;
 use App\Services\Browse\BrowseSearchResult;
 use App\Services\Browse\BrowseSearchService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 beforeEach(function () {
     app()->bind(BrowseSearchService::class, FakeBrowseSearchService::class);
@@ -337,7 +339,7 @@ it('orders grades by school type sort order', function () {
     ]);
 
     Livewire::test(BrowseDocuments::class)
-        ->assertViewHas('grades', function (\Illuminate\Support\Collection $grades) use ($pvGrade, $osGrade, $ssGrade): bool {
+        ->assertViewHas('grades', function (Collection $grades) use ($pvGrade, $osGrade, $ssGrade): bool {
             return $grades->pluck('id')->values()->all() === [
                 $osGrade->id,
                 $ssGrade->id,

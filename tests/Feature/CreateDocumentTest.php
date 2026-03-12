@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\CreateDocument;
 use App\Models\Category;
 use App\Models\Document;
 use App\Models\DocumentFile;
@@ -7,17 +8,18 @@ use App\Models\Grade;
 use App\Models\SchoolType;
 use App\Models\Subject;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 function storeDocumentZip(int $documentId, array $files): void
 {
     $tempPath = tempnam(sys_get_temp_dir(), 'document_test_zip_');
-    $zip = new \ZipArchive;
-    $zip->open($tempPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+    $zip = new ZipArchive;
+    $zip->open($tempPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
     foreach ($files as $name => $content) {
         $zip->addFromString($name, $content);
@@ -67,7 +69,7 @@ it('creates a document with priprava category', function () {
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'priprava')
         ->set('form.schoolTypeId', (string) $schoolType->id)
         ->set('form.gradeId', (string) $grade->id)
@@ -115,7 +117,7 @@ it('creates a document with ostalo category', function () {
     $file = UploadedFile::fake()->create('dokument.docx', 500, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'ostalo')
         ->set('form.ostaloCategory', (string) $subcategory->id)
         ->set('form.schoolTypeId', (string) $schoolType->id)
@@ -144,7 +146,7 @@ it('creates a new subject via createSubject action', function () {
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'priprava')
         ->set('form.schoolTypeId', (string) $schoolType->id)
         ->set('form.gradeId', (string) $grade->id)
@@ -197,7 +199,7 @@ it('populates document fields when editing', function () {
 
     Livewire::actingAs($user)
         ->withQueryParams(['uredi' => $document->id])
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->assertSet('editingDocumentId', $document->id)
         ->assertSet('form.categoryType', 'ostalo')
         ->assertSet('form.ostaloCategory', (string) $subcategory->id)
@@ -248,7 +250,7 @@ it('updates an existing document without requiring new files', function () {
 
     Livewire::actingAs($user)
         ->withQueryParams(['uredi' => $document->id])
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'priprava')
         ->set('form.ostaloCategory', '')
         ->set('form.title', 'Posodobljen naslov')
@@ -311,7 +313,7 @@ it('appends new files to existing document files during editing', function () {
 
     Livewire::actingAs($user)
         ->withQueryParams(['uredi' => $document->id])
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.title', 'Gradivo z novo datoteko')
         ->set('form.files', [$newFile])
         ->call('submit')
@@ -370,7 +372,7 @@ it('removes selected existing files during editing', function () {
 
     Livewire::actingAs($user)
         ->withQueryParams(['uredi' => $document->id])
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->call('removeExistingFile', $firstFile->id)
         ->call('submit')
         ->assertHasNoErrors();
@@ -414,7 +416,7 @@ it('requires at least one file to remain when editing', function () {
 
     Livewire::actingAs($user)
         ->withQueryParams(['uredi' => $document->id])
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->call('removeExistingFile', $document->files()->firstOrFail()->id)
         ->call('submit')
         ->assertHasErrors(['form.files']);
@@ -439,7 +441,7 @@ it('requires title and files', function () {
     $subject = Subject::factory()->forSchoolType($schoolType)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'priprava')
         ->set('form.schoolTypeId', (string) $schoolType->id)
         ->set('form.gradeId', (string) $grade->id)
@@ -459,7 +461,7 @@ it('requires ostaloCategory when categoryType is ostalo', function () {
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'ostalo')
         ->set('form.ostaloCategory', '')
         ->set('form.schoolTypeId', (string) $schoolType->id)
@@ -477,7 +479,7 @@ it('requires school type and grade', function () {
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'priprava')
         ->set('form.schoolTypeId', '')
         ->set('form.gradeId', '')
@@ -497,7 +499,7 @@ it('rejects subject that is not linked to selected school type', function () {
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'priprava')
         ->set('form.schoolTypeId', (string) $schoolType->id)
         ->set('form.gradeId', (string) $grade->id)
@@ -517,7 +519,7 @@ it('rejects files with invalid extensions', function () {
     $file = UploadedFile::fake()->create('malware.exe', 1024);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'priprava')
         ->set('form.schoolTypeId', (string) $schoolType->id)
         ->set('form.gradeId', (string) $grade->id)
@@ -545,7 +547,7 @@ it('generates unique slugs', function () {
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.categoryType', 'priprava')
         ->set('form.schoolTypeId', (string) $schoolType->id)
         ->set('form.gradeId', (string) $grade->id)
@@ -570,7 +572,7 @@ it('resets the form', function () {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.title', 'Nekaj')
         ->set('submitted', true)
         ->call('resetForm')
@@ -589,7 +591,7 @@ it('removes a file from the list', function () {
     $file2 = UploadedFile::fake()->create('b.pdf', 100, 'application/pdf');
 
     $component = Livewire::actingAs($user)
-        ->test(\App\Livewire\CreateDocument::class)
+        ->test(CreateDocument::class)
         ->set('form.files', [$file1, $file2]);
 
     expect($component->get('form.files'))->toHaveCount(2);

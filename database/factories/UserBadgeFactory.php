@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\UserBadge;
 use App\Support\BadgeRegistry;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\UserBadge>
+ * @extends Factory<UserBadge>
  */
 class UserBadgeFactory extends Factory
 {

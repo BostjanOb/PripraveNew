@@ -6,12 +6,13 @@ use App\Livewire\UploadedDocumentsTab;
 use App\Models\Document;
 use App\Models\DownloadRecord;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 // ── Profile page ──────────────────────────────────────────────────────────────
 
