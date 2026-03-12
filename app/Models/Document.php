@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\DocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -11,12 +12,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 
 class Document extends Model
 {
-    /** @use HasFactory<\Database\Factories\DocumentFactory> */
+    /** @use HasFactory<DocumentFactory> */
     use HasFactory, Searchable, SoftDeletes;
 
     protected function casts(): array
@@ -170,6 +172,18 @@ class Document extends Model
     public function incrementDownloads(): void
     {
         $this->increment('downloads_count');
+    }
+
+    public function recordDownload(int $userId, ?DocumentFile $documentFile = null): void
+    {
+        DB::transaction(function () use ($userId, $documentFile): void {
+            $this->increment('downloads_count');
+
+            $this->downloadRecords()->create([
+                'user_id' => $userId,
+                'document_file_id' => $documentFile?->id,
+            ]);
+        });
     }
 
     public function recalculateRating(): void

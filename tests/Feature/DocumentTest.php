@@ -3,14 +3,16 @@
 use App\Models\Comment;
 use App\Models\Document;
 use App\Models\DocumentFile;
+use App\Models\DownloadRecord;
 use App\Models\Rating;
 use App\Models\Report;
 use App\Models\ReportReason;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 // ── Document show page ───────────────────────────────────────────────────────
 
@@ -117,6 +119,13 @@ it('allows authenticated verified users to download a file', function () {
         ->assertSuccessful();
 
     expect($document->fresh()->downloads_count)->toBe(1);
+
+    $downloadRecord = DownloadRecord::query()->first();
+
+    expect($downloadRecord)->not->toBeNull()
+        ->and($downloadRecord->user_id)->toBe($user->id)
+        ->and($downloadRecord->document_id)->toBe($document->id)
+        ->and($downloadRecord->document_file_id)->toBe($file->id);
 });
 
 it('returns 404 when downloading a file that does not belong to the document', function () {
@@ -158,6 +167,14 @@ it('allows authenticated verified users to download a ZIP', function () {
         ->get(route('document.download.zip', $document))
         ->assertSuccessful()
         ->assertHeader('content-type', 'application/zip');
+
+    $downloadRecord = DownloadRecord::query()->first();
+
+    expect($document->fresh()->downloads_count)->toBe(1)
+        ->and($downloadRecord)->not->toBeNull()
+        ->and($downloadRecord->user_id)->toBe($user->id)
+        ->and($downloadRecord->document_id)->toBe($document->id)
+        ->and($downloadRecord->document_file_id)->toBeNull();
 });
 
 it('returns 404 when downloading ZIP for document with no files', function () {

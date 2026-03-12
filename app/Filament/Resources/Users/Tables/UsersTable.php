@@ -37,6 +37,10 @@ class UsersTable
                     ->boolean()
                     ->getStateUsing(fn (User $record): bool => filled($record->email_verified_at))
                     ->sortable(),
+                TextColumn::make('last_login_at')
+                    ->label('Zadnja prijava')
+                    ->dateTime('d.m.Y H:i')
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Ustvarjen')
                     ->dateTime('d.m.Y H:i')

@@ -58,9 +58,8 @@ class DocumentController extends Controller
         abort_unless($file->document_id === $document->id, 404);
         abort_unless(auth()->check(), 403);
 
-        $document->incrementDownloads();
+        $document->recordDownload((int) auth()->id(), $file);
 
-        // If the storage path is a zip, extract the specific file from it
         if (str_ends_with($file->storage_path, '.zip') && Storage::exists($file->storage_path)) {
             $zipFullPath = Storage::path($file->storage_path);
 
@@ -88,17 +87,15 @@ class DocumentController extends Controller
         $document->load('files');
         abort_if($document->files->isEmpty(), 404);
 
-        $document->incrementDownloads();
+        $document->recordDownload((int) auth()->id());
 
         $zipName = str($document->slug)->append('.zip')->toString();
         $storagePath = $document->files->first()->storage_path;
 
-        // If files are stored as a single zip, serve it directly
         if (str_ends_with($storagePath, '.zip') && Storage::exists($storagePath)) {
             return Storage::download($storagePath, $zipName);
         }
 
-        // Fallback: build zip on-the-fly for legacy documents
         return response()->streamDownload(function () use ($document) {
             $tempPath = tempnam(sys_get_temp_dir(), 'doc_zip_');
             $zip = new ZipArchive;

@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\DocumentFileFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class DocumentFile extends Model
 {
-    /** @use HasFactory<\Database\Factories\DocumentFileFactory> */
+    /** @use HasFactory<DocumentFileFactory> */
     use HasFactory, SoftDeletes;
 
     public const ALLOWED_EXTENSIONS = ['doc', 'docx', 'pdf', 'ppt', 'pptx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
@@ -40,6 +42,11 @@ class DocumentFile extends Model
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);
+    }
+
+    public function downloadRecords(): HasMany
+    {
+        return $this->hasMany(DownloadRecord::class);
     }
 
     public function url(): Attribute

@@ -18,10 +18,16 @@ beforeEach(function () {
 
 it('loads the users resource page', function () {
     $users = User::factory()->count(3)->create();
+    $lastLoginUser = User::factory()->create([
+        'display_name' => 'Aktiven Uporabnik',
+        'last_login_at' => '2026-03-12 09:45:00',
+    ]);
 
     Livewire::test(ListUsers::class)
         ->assertOk()
-        ->assertCanSeeTableRecords($users);
+        ->assertCanSeeTableRecords($users)
+        ->assertCanSeeTableRecords([$lastLoginUser])
+        ->assertSee('12.03.2026 09:45');
 });
 
 it('creates a user via header action', function () {
@@ -63,12 +69,14 @@ it('shows user infolist on the view page', function () {
     $user = User::factory()->create([
         'display_name' => 'Testni Uporabnik',
         'email' => 'testni@example.com',
+        'last_login_at' => '2026-03-12 14:20:00',
     ]);
 
     Livewire::test(ViewUser::class, ['record' => $user->getRouteKey()])
         ->assertOk()
         ->assertSee('Testni Uporabnik')
-        ->assertSee('testni@example.com');
+        ->assertSee('testni@example.com')
+        ->assertSee('12.03.2026 14:20');
 });
 
 it('hides delete action for the currently authenticated user', function () {

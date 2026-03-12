@@ -32,6 +32,9 @@ class UserInfolist
                             ->label('E-pošta potrjena')
                             ->boolean()
                             ->getStateUsing(fn (User $record): bool => filled($record->email_verified_at)),
+                        TextEntry::make('last_login_at')
+                            ->label('Zadnja prijava')
+                            ->dateTime('d.m.Y H:i'),
                         TextEntry::make('created_at')
                             ->label('Ustvarjen')
                             ->dateTime('d.m.Y H:i'),

@@ -39,6 +39,9 @@ class MigrateFromOldDatabase extends Command
      */
     private array $skippedDocumentIds = [];
 
+    /** @var array<int, int|null>|null */
+    private ?array $singleDocumentFileIds = null;
+
     public function handle(): int
     {
         $this->chunk = (int) $this->option('chunk');
@@ -365,6 +368,7 @@ class MigrateFromOldDatabase extends Command
                         'role' => $row->vloga === 'admin' ? 'admin' : 'user',
                         'facebook_id' => $row->fb_userid ?: null,
                         'email_verified_at' => $row->emailPotrjen ? $registracija : null,
+                        'last_login_at' => $row->zadnjaPrijava,
                         'created_at' => $registracija,
                         'updated_at' => $registracija,
                     ];
@@ -405,7 +409,8 @@ class MigrateFromOldDatabase extends Command
         DB::connection('mysql_old')
             ->table('priprava as p')
             ->join('razred as r', 'p.razredId', '=', 'r.razredId')
-            ->select('p.*', 'r.solaId')
+            ->leftJoin('tema as t', 'p.temaId', '=', 't.temaId')
+            ->select('p.*', 'r.solaId', 't.temaIme')
             ->orderBy('p.pripravaId')
             ->chunk($this->chunk, function ($rows) use (&$count, &$skipped, $now, &$usedSlugs) {
                 $inserts = [];
@@ -427,6 +432,7 @@ class MigrateFromOldDatabase extends Command
 
                     $slug = $this->makeUniqueSlug((string) $row->pripravaURL, $row->pripravaId, $usedSlugs);
                     $usedSlugs[$slug] = true;
+                    $topic = trim((string) ($row->temaIme ?? ''));
 
                     $inserts[] = [
                         'id' => $row->pripravaId,
@@ -438,7 +444,7 @@ class MigrateFromOldDatabase extends Command
                         'title' => $row->naslov,
                         'slug' => $slug,
                         'description' => $row->opis,
-                        'topic' => null,
+                        'topic' => $topic !== '' ? $topic : null,
                         'keywords' => $row->kljucneBesede,
                         'downloads_count' => $row->stPrenosov ?? 0,
                         'views_count' => 0,
@@ -616,16 +622,7 @@ class MigrateFromOldDatabase extends Command
 
         $this->info('Recalculating document rating averages...');
 
-        DB::statement('
-            UPDATE documents d
-            JOIN (
-                SELECT document_id, COUNT(*) AS cnt, AVG(rating) AS avg_rating
-                FROM ratings
-                GROUP BY document_id
-            ) r ON d.id = r.document_id
-            SET d.rating_count = r.cnt,
-                d.rating_avg   = ROUND(r.avg_rating, 2)
-        ');
+        $this->recalculateDocumentRatings();
 
         $this->info('Rating averages recalculated.');
     }
@@ -639,22 +636,11 @@ class MigrateFromOldDatabase extends Command
         $this->info('Migrating download records from uporabnik_ima_priprava...');
 
         $total = DB::connection('mysql_old')->table('uporabnik_ima_priprava')->count();
-        $this->info("Total records: {$total} — running direct SQL insert (no row-by-row progress)...");
+        $this->info("Total records: {$total}");
 
-        // Use a single cross-database INSERT...SELECT. MySQL handles everything
-        // server-side — no PHP loop, no round-trips, orders of magnitude faster
-        // than chunked inserts for large tables.
-        // The INNER JOIN on `documents` automatically excludes skipped documents.
-        $oldDb = DB::connection('mysql_old')->getDatabaseName();
-
-        $migrated = DB::affectingStatement("
-            INSERT INTO `download_records` (`user_id`, `document_id`, `created_at`)
-            SELECT `uip`.`uporabnikId`, `uip`.`pripravaId`, `p`.`datum`
-            FROM `{$oldDb}`.`uporabnik_ima_priprava` AS `uip`
-            INNER JOIN `{$oldDb}`.`priprava` AS `p` ON `p`.`pripravaId` = `uip`.`pripravaId`
-            INNER JOIN `documents` AS `d` ON `d`.`id` = `uip`.`pripravaId`
-            WHERE `uip`.`uporabnikId` > 0
-        ");
+        $migrated = $this->canUseCrossDatabaseBulkInsert()
+            ? $this->migrateDownloadRecordsFromUserDocumentsWithCrossDatabaseInsert()
+            : $this->migrateDownloadRecordsFromUserDocumentsWithChunkedFallback();
 
         $this->info("Download records (user-document): {$migrated} migrated.");
     }
@@ -668,18 +654,251 @@ class MigrateFromOldDatabase extends Command
         $this->info('Migrating download records from logPrenos...');
 
         $total = DB::connection('mysql_old')->table('logPrenos')->count();
-        $this->info("Total records: {$total} — running direct SQL insert (no row-by-row progress)...");
+        $this->info("Total records: {$total}");
+
+        $migrated = $this->canUseCrossDatabaseBulkInsert()
+            ? $this->migrateDownloadRecordsFromLogWithCrossDatabaseInsert()
+            : $this->migrateDownloadRecordsFromLogWithChunkedFallback();
+
+        $this->info("Download records (logPrenos): {$migrated} migrated.");
+    }
+
+    private function recalculateDocumentRatings(): void
+    {
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            DB::statement('
+                UPDATE documents d
+                JOIN (
+                    SELECT document_id, COUNT(*) AS cnt, AVG(rating) AS avg_rating
+                    FROM ratings
+                    GROUP BY document_id
+                ) r ON d.id = r.document_id
+                SET d.rating_count = r.cnt,
+                    d.rating_avg   = ROUND(r.avg_rating, 2)
+            ');
+
+            return;
+        }
+
+        DB::table('ratings')
+            ->selectRaw('document_id, COUNT(*) AS cnt, AVG(rating) AS avg_rating')
+            ->groupBy('document_id')
+            ->orderBy('document_id')
+            ->each(function (object $rating): void {
+                DB::table('documents')
+                    ->where('id', $rating->document_id)
+                    ->update([
+                        'rating_count' => (int) $rating->cnt,
+                        'rating_avg' => round((float) $rating->avg_rating, 2),
+                    ]);
+            });
+    }
+
+    private function migrateDownloadRecordsFromUserDocumentsWithCrossDatabaseInsert(): int
+    {
+        $this->info('Using cross-database bulk insert for uporabnik_ima_priprava.');
 
         $oldDb = DB::connection('mysql_old')->getDatabaseName();
 
-        $migrated = DB::affectingStatement("
-            INSERT INTO `download_records` (`user_id`, `document_id`, `created_at`)
-            SELECT `l`.`uporabnikId`, `l`.`pripravaId`, `l`.`cas`
+        return DB::affectingStatement("
+            INSERT INTO `download_records` (`user_id`, `document_id`, `document_file_id`, `created_at`)
+            SELECT `uip`.`uporabnikId`, `uip`.`pripravaId`, NULL, `p`.`datum`
+            FROM `{$oldDb}`.`uporabnik_ima_priprava` AS `uip`
+            INNER JOIN `{$oldDb}`.`priprava` AS `p` ON `p`.`pripravaId` = `uip`.`pripravaId`
+            INNER JOIN `documents` AS `d` ON `d`.`id` = `uip`.`pripravaId`
+            INNER JOIN `users` AS `u` ON `u`.`id` = `uip`.`uporabnikId`
+            WHERE `uip`.`uporabnikId` > 0
+        ");
+    }
+
+    private function migrateDownloadRecordsFromLogWithCrossDatabaseInsert(): int
+    {
+        $this->info('Using cross-database bulk insert for logPrenos.');
+
+        $oldDb = DB::connection('mysql_old')->getDatabaseName();
+
+        return DB::affectingStatement("
+            INSERT INTO `download_records` (`user_id`, `document_id`, `document_file_id`, `created_at`)
+            SELECT
+                `l`.`uporabnikId`,
+                `l`.`pripravaId`,
+                CASE
+                    WHEN `l`.`tip` = 'datoteka' THEN `single_document_files`.`document_file_id`
+                    ELSE NULL
+                END,
+                `l`.`cas`
             FROM `{$oldDb}`.`logPrenos` AS `l`
             INNER JOIN `documents` AS `d` ON `d`.`id` = `l`.`pripravaId`
+            INNER JOIN `users` AS `u` ON `u`.`id` = `l`.`uporabnikId`
+            LEFT JOIN (
+                SELECT `document_id`, MIN(`id`) AS `document_file_id`
+                FROM `document_files`
+                GROUP BY `document_id`
+                HAVING COUNT(*) = 1
+            ) AS `single_document_files` ON `single_document_files`.`document_id` = `l`.`pripravaId`
             WHERE `l`.`uporabnikId` > 0
         ");
+    }
 
-        $this->info("Download records (logPrenos): {$migrated} migrated.");
+    private function migrateDownloadRecordsFromUserDocumentsWithChunkedFallback(): int
+    {
+        $this->info('Using chunked fallback import for uporabnik_ima_priprava.');
+
+        $migrated = 0;
+
+        DB::connection('mysql_old')
+            ->table('uporabnik_ima_priprava as uip')
+            ->join('priprava as p', 'p.pripravaId', '=', 'uip.pripravaId')
+            ->select('uip.uporabnikId', 'uip.pripravaId', 'p.datum')
+            ->orderBy('uip.uporabnikId')
+            ->orderBy('uip.pripravaId')
+            ->chunk($this->chunk, function ($rows) use (&$migrated): void {
+                $existingDocumentIds = $this->existingDocumentIds(
+                    $rows->pluck('pripravaId')->unique()->all(),
+                );
+                $existingUserIds = $this->existingUserIds(
+                    $rows->pluck('uporabnikId')->unique()->all(),
+                );
+
+                $inserts = [];
+
+                foreach ($rows as $row) {
+                    if (! $row->uporabnikId
+                        || ! isset($existingDocumentIds[$row->pripravaId])
+                        || ! isset($existingUserIds[$row->uporabnikId])) {
+                        continue;
+                    }
+
+                    $inserts[] = [
+                        'user_id' => $row->uporabnikId,
+                        'document_id' => $row->pripravaId,
+                        'document_file_id' => null,
+                        'created_at' => $row->datum,
+                    ];
+                }
+
+                $this->insertDownloadRecords($inserts);
+                $migrated += count($inserts);
+            });
+
+        return $migrated;
+    }
+
+    private function migrateDownloadRecordsFromLogWithChunkedFallback(): int
+    {
+        $this->info('Using chunked fallback import for logPrenos.');
+
+        $migrated = 0;
+        $singleDocumentFileIds = $this->singleDocumentFileIds();
+
+        DB::connection('mysql_old')
+            ->table('logPrenos')
+            ->select('id', 'pripravaId', 'uporabnikId', 'cas', 'tip')
+            ->orderBy('id')
+            ->chunk($this->chunk, function ($rows) use (&$migrated, $singleDocumentFileIds): void {
+                $existingDocumentIds = $this->existingDocumentIds(
+                    $rows->pluck('pripravaId')->unique()->all(),
+                );
+                $existingUserIds = $this->existingUserIds(
+                    $rows->pluck('uporabnikId')->unique()->all(),
+                );
+
+                $inserts = [];
+
+                foreach ($rows as $row) {
+                    if (! $row->uporabnikId
+                        || ! isset($existingDocumentIds[$row->pripravaId])
+                        || ! isset($existingUserIds[$row->uporabnikId])) {
+                        continue;
+                    }
+
+                    $inserts[] = [
+                        'user_id' => $row->uporabnikId,
+                        'document_id' => $row->pripravaId,
+                        'document_file_id' => $row->tip === 'datoteka'
+                            ? ($singleDocumentFileIds[$row->pripravaId] ?? null)
+                            : null,
+                        'created_at' => $row->cas,
+                    ];
+                }
+
+                $this->insertDownloadRecords($inserts);
+                $migrated += count($inserts);
+            });
+
+        return $migrated;
+    }
+
+    private function canUseCrossDatabaseBulkInsert(): bool
+    {
+        return in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)
+            && in_array(DB::connection('mysql_old')->getDriverName(), ['mysql', 'mariadb'], true);
+    }
+
+    /**
+     * @param  array<int, int>  $documentIds
+     * @return array<int, true>
+     */
+    private function existingDocumentIds(array $documentIds): array
+    {
+        if ($documentIds === []) {
+            return [];
+        }
+
+        return DB::table('documents')
+            ->whereIn('id', $documentIds)
+            ->pluck('id')
+            ->mapWithKeys(fn (int $documentId): array => [$documentId => true])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $userIds
+     * @return array<int, true>
+     */
+    private function existingUserIds(array $userIds): array
+    {
+        if ($userIds === []) {
+            return [];
+        }
+
+        return DB::table('users')
+            ->whereIn('id', $userIds)
+            ->pluck('id')
+            ->mapWithKeys(fn (int $userId): array => [$userId => true])
+            ->all();
+    }
+
+    /**
+     * @return array<int, int|null>
+     */
+    private function singleDocumentFileIds(): array
+    {
+        if ($this->singleDocumentFileIds !== null) {
+            return $this->singleDocumentFileIds;
+        }
+
+        $this->singleDocumentFileIds = DB::table('document_files')
+            ->selectRaw('document_id, MIN(id) AS document_file_id, COUNT(*) AS files_count')
+            ->groupBy('document_id')
+            ->get()
+            ->mapWithKeys(function (object $row): array {
+                return [(int) $row->document_id => (int) $row->files_count === 1
+                    ? (int) $row->document_file_id
+                    : null];
+            })
+            ->all();
+
+        return $this->singleDocumentFileIds;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $records
+     */
+    private function insertDownloadRecords(array $records): void
+    {
+        foreach (array_chunk($records, 1000) as $batch) {
+            DB::table('download_records')->insert($batch);
+        }
     }
 }

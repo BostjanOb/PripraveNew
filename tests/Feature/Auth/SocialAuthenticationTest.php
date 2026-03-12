@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 
@@ -14,17 +15,26 @@ it('redirects to google provider', function () {
 });
 
 it('creates a user when logging in with google for the first time', function () {
+    $now = Carbon::parse('2026-03-12 11:00:00');
+
+    Carbon::setTestNow($now);
+
     Socialite::fake('google', (new SocialiteUser)->map([
         'id' => 'google-123',
         'name' => 'Google User',
         'email' => 'google-user@example.com',
     ]));
 
-    $this->get('/auth/google/callback')->assertRedirect('/profil');
+    try {
+        $this->get('/auth/google/callback')->assertRedirect('/profil');
+    } finally {
+        Carbon::setTestNow();
+    }
 
     $this->assertDatabaseHas('users', [
         'email' => 'google-user@example.com',
         'google_id' => 'google-123',
+        'last_login_at' => '2026-03-12 11:00:00',
     ]);
 
     expect(auth()->check())->toBeTrue();
@@ -36,7 +46,12 @@ it('links google account to existing user by email', function () {
         'slug' => 'existing-user',
         'email' => 'existing@example.com',
         'google_id' => null,
+        'last_login_at' => null,
     ]);
+
+    $now = Carbon::parse('2026-03-12 11:15:00');
+
+    Carbon::setTestNow($now);
 
     Socialite::fake('google', (new SocialiteUser)->map([
         'id' => 'google-555',
@@ -44,9 +59,14 @@ it('links google account to existing user by email', function () {
         'email' => 'existing@example.com',
     ]));
 
-    $this->get('/auth/google/callback')->assertRedirect('/profil');
+    try {
+        $this->get('/auth/google/callback')->assertRedirect('/profil');
+    } finally {
+        Carbon::setTestNow();
+    }
 
-    expect($user->fresh()->google_id)->toBe('google-555');
+    expect($user->fresh()->google_id)->toBe('google-555')
+        ->and($user->fresh()->last_login_at?->toDateTimeString())->toBe('2026-03-12 11:15:00');
 });
 
 it('logs in existing user by google id', function () {
