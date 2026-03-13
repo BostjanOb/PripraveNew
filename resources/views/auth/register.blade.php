@@ -1,4 +1,8 @@
 <x-layouts.app title="Registracija — {{ config('app.name') }}">
+    <x-slot:head>
+        <x-turnstile.scripts />
+    </x-slot:head>
+
     <div class="flex flex-1 items-center justify-center px-4 py-12">
         <div class="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-sm">
 
@@ -111,6 +115,13 @@
                     </label>
                 </div>
                 <flux:error name="terms" />
+
+                <div class="space-y-2">
+                    <div class="flex justify-center">
+                        <x-turnstile data-action="register" />
+                    </div>
+                    <flux:error name="cf-turnstile-response" />
+                </div>
 
                 <flux:button type="submit" variant="primary" class="w-full">
                     Registracija

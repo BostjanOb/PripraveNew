@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -30,6 +31,7 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'password' => $this->passwordRules(),
             'terms' => ['required', 'accepted'],
+            'cf-turnstile-response' => ['required', new Turnstile],
         ])->validate();
 
         return User::create([
