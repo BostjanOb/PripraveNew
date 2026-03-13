@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Badge;
 use App\Models\User;
 use App\Models\UserBadge;
 
@@ -17,16 +18,9 @@ it('returns null avatar url when avatar path does not exist', function () {
     expect($user->avatar_url)->toBeNull();
 });
 
-it('resolves badge definition from badge id', function () {
+it('casts badge_id to Badge enum', function () {
     $userBadge = (new UserBadge)->forceFill(['badge_id' => 'prvi-korak']);
 
-    expect($userBadge->definition)->toBeArray()
-        ->and($userBadge->definition['id'])->toBe('prvi-korak')
-        ->and($userBadge->definition['name'])->toBeString();
-});
-
-it('returns null badge definition for unknown badge id', function () {
-    $userBadge = (new UserBadge)->forceFill(['badge_id' => 'missing-badge']);
-
-    expect($userBadge->definition)->toBeNull();
+    expect($userBadge->badge_id)->toBe(Badge::PrviKorak)
+        ->and($userBadge->badge_id->label())->toBe('Prvi korak');
 });

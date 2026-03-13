@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Badge;
 use App\Models\Document;
 use App\Models\DocumentFile;
-use App\Support\BadgeRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -37,13 +37,10 @@ class DocumentController extends Controller
 
         $relatedDocuments = $document->relatedDocuments(3)->load(['category', 'schoolType', 'grade', 'subject']);
 
-        // Author badge
-        $authorBadge = null;
-        if ($document->user) {
-            $uploadCount = $document->user->uploadCount();
-            $authorBadgeId = $this->getAuthorBadgeId($uploadCount);
-            $authorBadge = $authorBadgeId ? BadgeRegistry::find($authorBadgeId) : null;
-        }
+        // Author's highest contribution badge
+        $authorBadge = $document->user
+            ? Badge::highestContributionBadge($document->user->uploadCount())
+            : null;
 
         return view('pages.document-show')
             ->with('document', $document)
@@ -123,20 +120,5 @@ class DocumentController extends Controller
         $document->delete();
 
         return redirect()->route('profile')->with('success', 'Dokument je bil uspešno izbrisan.');
-    }
-
-    /**
-     * Determine the highest contribution badge for the given upload count.
-     */
-    private function getAuthorBadgeId(int $uploadCount): ?string
-    {
-        return match (true) {
-            $uploadCount >= 100 => 'mojster-priprav',
-            $uploadCount >= 50 => 'zvezda-skupnosti',
-            $uploadCount >= 15 => 'aktivni-avtor',
-            $uploadCount >= 5 => 'prispevkar',
-            $uploadCount >= 1 => 'prvi-korak',
-            default => null,
-        };
     }
 }

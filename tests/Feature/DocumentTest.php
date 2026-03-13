@@ -46,6 +46,20 @@ it('shows author name on the document page', function () {
         ->assertSee('TestAvtor');
 });
 
+it('renders client-side comment button state for authenticated users', function () {
+    $user = User::factory()->create();
+    $document = Document::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('document.show', $document))
+        ->assertSuccessful()
+        ->assertSeeHtml('x-data="{ hasText: false }"')
+        ->assertSeeHtml('wire:model="text"')
+        ->assertSeeHtml('x-on:input="hasText = $event.target.value.trim().length > 0"')
+        ->assertSeeHtml(':disabled="! hasText"')
+        ->assertDontSeeHtml('wire:model.live="text"');
+});
+
 it('increments view count once per session', function () {
     $document = Document::factory()->create(['views_count' => 5]);
 

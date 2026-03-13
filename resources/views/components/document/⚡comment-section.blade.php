@@ -99,9 +99,10 @@ new class extends Component
             </div>
         @endif
 
-        <form wire:submit="addComment" class="mt-5">
+        <form wire:submit="addComment" class="mt-5" x-data="{ hasText: @js(filled($text)) }">
             <textarea
                 wire:model="text"
+                x-on:input="hasText = $event.target.value.trim().length > 0"
                 placeholder="Napiši komentar..."
                 rows="3"
                 class="w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-800"
@@ -112,7 +113,7 @@ new class extends Component
             <div class="mt-3 flex justify-end">
                 <button
                     type="submit"
-                    @disabled(! $text)
+                    :disabled="! hasText"
                     class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <x-icon-regular.paper-plane-top class="size-3.5"/>

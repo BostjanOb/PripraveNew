@@ -5,7 +5,7 @@
     'uploadCount'             => int,
     'previousMilestone'       => int,
     'nextMilestone'           => int|null,
-    'nextBadge'               => array|null,
+    'nextBadge'               => Badge|null,
     'progressPercent'         => float,
     'uploadsToNext'           => int,
   ]
@@ -42,7 +42,7 @@
 
             <p class="mt-2 text-sm text-emerald-800 dark:text-emerald-200">
                 @if($nextBadge)
-                    Še {{ $uploadsToNext }} {{ $pripravaWord($uploadsToNext) }} do značke "{{ $nextBadge['name'] }}"!
+                    Še {{ $uploadsToNext }} {{ $pripravaWord($uploadsToNext) }} do značke "{{ $nextBadge->label() }}"!
                 @else
                     Dosegli ste najvišjo prispevno značko. Hvala za vaš izjemen doprinos skupnosti!
                 @endif

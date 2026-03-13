@@ -18,6 +18,7 @@
         "livewire/flux": "^2.12",
         "livewire/flux-pro": "^2.12",
         "meilisearch/meilisearch-php": "^1.16",
+        "ryangjchandler/laravel-cloudflare-turnstile": "^3.0",
         "spatie/laravel-sluggable": "^3.8",
         "stechstudio/filament-impersonate": "^5.1"
     },

@@ -56,6 +56,10 @@ class FaqResource extends Resource
                     ->options(Faq::iconBackgroundColorOptions())
                     ->required()
                     ->native(false),
+                TextInput::make('sort_order')
+                    ->label('Vrstni red')
+                    ->numeric()
+                    ->required(),
             ]);
     }
 

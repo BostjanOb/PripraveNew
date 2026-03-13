@@ -98,7 +98,7 @@
             <div class="mx-auto max-w-6xl px-4 py-8">
                 <h2 class="mb-4 font-serif text-lg font-bold text-foreground">Značke</h2>
                 <x-badge-progress :progress="$contributionProgress" />
-                <x-badge-grid :allBadges="$allBadges" :earnedBadgeIds="$earnedBadgeIds" :categories="$categories" :categoryLabels="$categoryLabels" />
+                <x-badge-grid :earnedBadges="$earnedBadges" />
             </div>
         </div>
 

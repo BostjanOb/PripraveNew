@@ -11,6 +11,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -48,6 +49,16 @@ class SchoolTypeResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
+                TextInput::make('sort_order')
+                    ->label('Vrstni red')
+                    ->numeric()
+                    ->default(0),
+                Select::make('subjects')
+                    ->label('Predmeti')
+                    ->relationship('subjects', 'name')
+                    ->multiple()
+                    ->searchable()
+                    ->preload(),
             ]);
     }
 
@@ -62,6 +73,9 @@ class SchoolTypeResource extends Resource
                 TextColumn::make('slug')
                     ->label('Slug')
                     ->searchable(),
+                TextColumn::make('subjects.name')
+                    ->label('Predmeti')
+                    ->badge(),
             ])
             ->defaultSort('sort_order')
             ->recordActions([

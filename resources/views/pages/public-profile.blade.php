@@ -53,15 +53,13 @@
         </div>
 
         {{-- ── Badges section ── --}}
-        @if(count($earnedBadgeIds) > 0)
+        @if($earnedBadges->isNotEmpty())
             <div class="border-b border-border bg-card">
                 <div class="mx-auto max-w-6xl px-4 py-6">
                     <h2 class="mb-3 text-sm font-semibold text-foreground">Značke</h2>
                     <x-badge-grid
-                        :allBadges="$allBadges"
-                        :earnedBadgeIds="$earnedBadgeIds"
+                        :earnedBadges="$earnedBadges"
                         :compact="true"
-                        :showAll="false"
                     />
                 </div>
             </div>

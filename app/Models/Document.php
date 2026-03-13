@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Observers\DocumentObserver;
 use Database\Factories\DocumentFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 
+#[ObservedBy(DocumentObserver::class)]
 class Document extends Model
 {
     /** @use HasFactory<DocumentFactory> */

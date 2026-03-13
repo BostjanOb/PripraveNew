@@ -1,41 +1,26 @@
+@use('App\Enums\Badge')
+@use('App\Enums\BadgeCategory')
+
 @props([
-    'allBadges' => [],    // array from BadgeRegistry::all() — required in full mode
-    'earnedBadgeIds',     // string[]
-    'categories' => [],   // string[] from BadgeRegistry::categories() — required in full mode
-    'categoryLabels' => [], // array<string,string> — required in full mode
+    'earnedBadges',       // Collection<int, Badge>
     'compact' => false,   // compact mode: only earned badges, single flex row, expandable
-    'showAll' => true,    // if false (compact), only show earned badges
 ])
 
 @php
-    $earnedSet = array_flip($earnedBadgeIds);
-    $earnedCount = count($earnedBadgeIds);
-    $totalCount = count($allBadges);
-
-    $categoryIcons = [
-        'contribution' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />',
-        'downloads'    => '<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />',
-        'loyalty'      => '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />',
-        'special'      => '<path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />',
-    ];
-    $categoryColors = [
-        'contribution' => ['text' => 'text-emerald-600 dark:text-emerald-300', 'bg' => 'bg-emerald-50 dark:bg-emerald-950/40'],
-        'downloads'    => ['text' => 'text-sky-600 dark:text-sky-300',     'bg' => 'bg-sky-50 dark:bg-sky-950/40'],
-        'loyalty'      => ['text' => 'text-pink-600 dark:text-pink-300',   'bg' => 'bg-pink-50 dark:bg-pink-950/40'],
-        'special'      => ['text' => 'text-fuchsia-600 dark:text-fuchsia-300', 'bg' => 'bg-fuchsia-50 dark:bg-fuchsia-950/40'],
-    ];
+    $earnedSet = $earnedBadges->all();
+    $earnedCount = count($earnedSet);
+    $totalCount = count(Badge::cases());
 @endphp
 
 @if($compact)
     {{-- Compact mode: only earned badges, expandable with Alpine --}}
     @php
-        $earnedBadgeObjects = array_values(array_filter($allBadges, fn($b) => isset($earnedSet[$b['id']])));
         $visibleCount = 6;
-        $hasMore = count($earnedBadgeObjects) > $visibleCount;
+        $hasMore = $earnedCount > $visibleCount;
     @endphp
     <div x-data="{ expanded: false }">
         <div class="flex flex-wrap gap-3">
-            @foreach($earnedBadgeObjects as $index => $badge)
+            @foreach($earnedSet as $index => $badge)
                 <div x-show="{{ $index < $visibleCount ? 'true' : 'expanded' }}">
                     <x-badge-icon :badge="$badge" :earned="true" size="sm" :showLabel="true" />
                 </div>
@@ -47,7 +32,7 @@
                     x-on:click="expanded = true"
                     class="flex size-10 items-center justify-center rounded-2xl border-2 border-dashed border-muted-foreground/20 text-xs font-bold text-muted-foreground transition-colors hover:border-muted-foreground/40"
                 >
-                    +{{ count($earnedBadgeObjects) - $visibleCount }}
+                    +{{ $earnedCount - $visibleCount }}
                 </button>
             @endif
         </div>
@@ -81,26 +66,25 @@
     </div>
 
     {{-- Per-category grids --}}
-    @foreach($categories as $cat)
+    @foreach(BadgeCategory::cases() as $category)
         @php
-            $badges = array_values(array_filter($allBadges, fn($b) => $b['category'] === $cat));
-            $color = $categoryColors[$cat] ?? $categoryColors['contribution'];
-            $iconPath = $categoryIcons[$cat] ?? $categoryIcons['contribution'];
+            $badges = Badge::forCategory($category);
+            $catColor = $category->color();
         @endphp
         <div>
             <div class="mb-3 flex items-center gap-2">
-                <div class="flex size-6 items-center justify-center rounded-lg {{ $color['bg'] }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5 {{ $color['text'] }}">
-                        {!! $iconPath !!}
+                <div class="flex size-6 items-center justify-center rounded-lg {{ $catColor['bg'] }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5 {{ $catColor['text'] }}">
+                        {!! $category->iconPath() !!}
                     </svg>
                 </div>
-                <h3 class="text-sm font-semibold text-foreground">{{ $categoryLabels[$cat] }}</h3>
+                <h3 class="text-sm font-semibold text-foreground">{{ $category->label() }}</h3>
             </div>
             <div class="flex flex-wrap gap-4">
                 @foreach($badges as $badge)
                     <x-badge-icon
                         :badge="$badge"
-                        :earned="isset($earnedSet[$badge['id']])"
+                        :earned="$earnedBadges->contains($badge)"
                         size="md"
                         :showLabel="true"
                     />

@@ -2,132 +2,191 @@
 
 namespace App\Services;
 
+use App\Enums\Badge;
 use App\Models\User;
-use App\Support\BadgeRegistry;
+use App\Models\UserBadge;
 
 class BadgeService
 {
     /**
-     * Compute which badge IDs a user has earned based on their activity.
-     *
-     * @return string[]
+     * Award a single badge idempotently.
      */
-    public function getEarnedBadgeIds(User $user): array
+    public function awardBadge(User $user, Badge $badge): void
     {
-        $uploadCount = $user->uploadCount();
-        $downloadCount = $user->downloadCount();
-        $memberYears = $user->memberYears();
-        $subjectsCount = $user->distinctSubjectCount();
-        $commentCount = $user->commentCount();
-        $maxDocDownloads = $user->maxDocumentDownloads();
-        $isPioneer = $user->isPioneer();
+        UserBadge::firstOrCreate(
+            ['user_id' => $user->id, 'badge_id' => $badge],
+            ['earned_at' => now()],
+        );
+    }
 
+    /**
+     * Compute all earned badges and persist any missing ones (never revoke).
+     */
+    public function syncBadges(User $user): void
+    {
+        $earned = $this->computeEarnedBadges($user);
+
+        $existing = $user->badges()->pluck('badge_id')->all();
+
+        $missing = array_diff(
+            array_map(fn (Badge $b) => $b->value, $earned),
+            array_map(fn ($b) => $b instanceof Badge ? $b->value : $b, $existing),
+        );
+
+        foreach ($missing as $badgeValue) {
+            $this->awardBadge($user, Badge::from($badgeValue));
+        }
+
+        // Refresh the relationship so subsequent reads are up-to-date
+        $user->unsetRelation('badges');
+    }
+
+    /**
+     * Compute which badges a user has earned based on their activity.
+     *
+     * @return Badge[]
+     */
+    public function computeEarnedBadges(User $user): array
+    {
         $earned = [];
 
         // Contribution
-        if ($uploadCount >= 1) {
-            $earned[] = 'prvi-korak';
-        }
-        if ($uploadCount >= 5) {
-            $earned[] = 'prispevkar';
-        }
-        if ($uploadCount >= 15) {
-            $earned[] = 'aktivni-avtor';
-        }
-        if ($uploadCount >= 50) {
-            $earned[] = 'zvezda-skupnosti';
-        }
-        if ($uploadCount >= 100) {
-            $earned[] = 'mojster-priprav';
+        $uploadCount = $user->uploadCount();
+        foreach (Badge::contributionMilestones() as $milestone) {
+            if ($uploadCount >= $milestone['threshold']) {
+                $earned[] = $milestone['badge'];
+            }
         }
 
         // Downloads
+        $downloadCount = $user->downloadCount();
         if ($downloadCount >= 10) {
-            $earned[] = 'raziskovalec';
+            $earned[] = Badge::Raziskovalec;
         }
         if ($downloadCount >= 50) {
-            $earned[] = 'zbiratelj';
+            $earned[] = Badge::Zbiratelj;
         }
         if ($downloadCount >= 200) {
-            $earned[] = 'modra-sovica';
-        }
-
-        // Loyalty — everyone gets novinec
-        $earned[] = 'novinec';
-        if ($memberYears >= 1) {
-            $earned[] = '1-leto';
-        }
-        if ($memberYears >= 2) {
-            $earned[] = '2-leti';
-        }
-        if ($memberYears >= 5) {
-            $earned[] = 'veteran';
+            $earned[] = Badge::ModraSovica;
         }
 
         // Special
-        if ($subjectsCount >= 3) {
-            $earned[] = 'vsestranski';
+        if ($user->distinctSubjectCount() >= 3) {
+            $earned[] = Badge::Vsestranski;
         }
-        if ($commentCount >= 10) {
-            $earned[] = 'pomocnik';
+        if ($user->commentCount() >= 10) {
+            $earned[] = Badge::Pomocnik;
         }
-        if ($maxDocDownloads >= 100) {
-            $earned[] = 'navdih';
+        if ($user->maxDocumentDownloads() >= 100) {
+            $earned[] = Badge::Navdih;
         }
-        if ($isPioneer) {
-            $earned[] = 'pionir';
+        if ($user->isPioneer()) {
+            $earned[] = Badge::Pionir;
         }
 
         return $earned;
     }
 
     /**
+     * Check and award contribution badges after a document is created.
+     */
+    public function checkContributionBadges(User $user): void
+    {
+        $uploadCount = $user->uploadCount();
+
+        foreach (Badge::contributionMilestones() as $milestone) {
+            if ($uploadCount >= $milestone['threshold']) {
+                $this->awardBadge($user, $milestone['badge']);
+            }
+        }
+
+        // Also check vsestranski
+        if ($user->distinctSubjectCount() >= 3) {
+            $this->awardBadge($user, Badge::Vsestranski);
+        }
+
+        // Check pioneer
+        if ($user->isPioneer()) {
+            $this->awardBadge($user, Badge::Pionir);
+        }
+    }
+
+    /**
+     * Check and award download badges after a download is recorded.
+     */
+    public function checkDownloadBadges(User $user): void
+    {
+        $downloadCount = $user->downloadCount();
+
+        if ($downloadCount >= 10) {
+            $this->awardBadge($user, Badge::Raziskovalec);
+        }
+        if ($downloadCount >= 50) {
+            $this->awardBadge($user, Badge::Zbiratelj);
+        }
+        if ($downloadCount >= 200) {
+            $this->awardBadge($user, Badge::ModraSovica);
+        }
+    }
+
+    /**
+     * Check and award the navdih badge to the document author.
+     */
+    public function checkNavdihBadge(User $author): void
+    {
+        if ($author->maxDocumentDownloads() >= 100) {
+            $this->awardBadge($author, Badge::Navdih);
+        }
+    }
+
+    /**
+     * Check and award the pomocnik badge.
+     */
+    public function checkCommentBadges(User $user): void
+    {
+        if ($user->commentCount() >= 10) {
+            $this->awardBadge($user, Badge::Pomocnik);
+        }
+    }
+
+    /**
      * Return contribution progress data for the "Moj vpliv" card.
      *
-     * @return array{uploadCount: int, nextBadge: array{id: string, name: string, description: string, category: string, requirement: string, color: array{bg: string, border: string, text: string, iconBg: string}}|null, uploadsToNext: int, previousMilestone: int, nextMilestone: int|null, progressPercent: float}
+     * @return array{uploadCount: int, nextBadge: Badge|null, uploadsToNext: int, previousMilestone: int, nextMilestone: int|null, progressPercent: float}
      */
     public function getContributionProgress(User $user): array
     {
         $uploadCount = $user->uploadCount();
-
-        $milestones = [
-            ['id' => 'prvi-korak', 'uploads' => 1],
-            ['id' => 'prispevkar', 'uploads' => 5],
-            ['id' => 'aktivni-avtor', 'uploads' => 15],
-            ['id' => 'zvezda-skupnosti', 'uploads' => 50],
-            ['id' => 'mojster-priprav', 'uploads' => 100],
-        ];
+        $milestones = Badge::contributionMilestones();
 
         $nextMilestone = null;
         $nextIndex = -1;
 
         foreach ($milestones as $index => $milestone) {
-            if ($uploadCount < $milestone['uploads']) {
+            if ($uploadCount < $milestone['threshold']) {
                 $nextMilestone = $milestone;
                 $nextIndex = $index;
                 break;
             }
         }
 
-        $previousMilestone = $nextIndex > 0 ? $milestones[$nextIndex - 1]['uploads'] : 0;
-        $currentMilestone = $nextMilestone
-            ? $nextMilestone['uploads']
-            : $milestones[count($milestones) - 1]['uploads'];
+        $previousMilestone = $nextIndex > 0 ? $milestones[$nextIndex - 1]['threshold'] : 0;
+        $currentThreshold = $nextMilestone
+            ? $nextMilestone['threshold']
+            : $milestones[count($milestones) - 1]['threshold'];
 
-        $uploadsToNext = $nextMilestone ? $currentMilestone - $uploadCount : 0;
+        $uploadsToNext = $nextMilestone ? $currentThreshold - $uploadCount : 0;
 
         $progressPercent = $nextMilestone
-            ? max(0, min(100, (($uploadCount - $previousMilestone) / ($currentMilestone - $previousMilestone)) * 100))
+            ? max(0, min(100, (($uploadCount - $previousMilestone) / ($currentThreshold - $previousMilestone)) * 100))
             : 100.0;
-
-        $nextBadgeDefinition = $nextMilestone ? BadgeRegistry::find($nextMilestone['id']) : null;
 
         return [
             'uploadCount' => $uploadCount,
-            'nextBadge' => $nextBadgeDefinition,
+            'nextBadge' => $nextMilestone ? $nextMilestone['badge'] : null,
             'uploadsToNext' => $uploadsToNext,
             'previousMilestone' => $previousMilestone,
-            'nextMilestone' => $nextMilestone ? $currentMilestone : null,
+            'nextMilestone' => $nextMilestone ? $currentThreshold : null,
             'progressPercent' => $progressPercent,
         ];
     }

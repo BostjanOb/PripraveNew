@@ -2,19 +2,25 @@
 
 namespace App\Models;
 
+use App\Enums\Badge;
+use App\Enums\BadgeCategory;
+use App\Observers\UserObserver;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
+#[ObservedBy(UserObserver::class)]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
@@ -74,6 +80,46 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function badges(): HasMany
     {
         return $this->hasMany(UserBadge::class);
+    }
+
+    /**
+     * @return Collection<int, Badge>
+     */
+    public function earnedBadges(): Collection
+    {
+        return $this->badges->pluck('badge_id')
+            ->merge($this->computedLoyaltyBadges())
+            ->unique();
+    }
+
+    public function hasBadge(Badge $badge): bool
+    {
+        if ($badge->category() === BadgeCategory::Loyalty) {
+            return in_array($badge, $this->computedLoyaltyBadges(), true);
+        }
+
+        return $this->badges->contains('badge_id', $badge);
+    }
+
+    /**
+     * @return Badge[]
+     */
+    public function computedLoyaltyBadges(): array
+    {
+        $years = $this->memberYears();
+        $earned = [Badge::Novinec];
+
+        if ($years >= 3) {
+            $earned[] = Badge::TriLeta;
+        }
+        if ($years >= 5) {
+            $earned[] = Badge::PetLet;
+        }
+        if ($years >= 10) {
+            $earned[] = Badge::DesetLet;
+        }
+
+        return $earned;
     }
 
     protected function initials(): Attribute

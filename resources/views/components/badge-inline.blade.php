@@ -1,10 +1,14 @@
 @props([
-    'badge', // array from BadgeRegistry
+    'badge', // App\Enums\Badge
 ])
 
+@php
+    $color = $badge->color();
+@endphp
+
 <span
-    title="{{ $badge['name'] }} — {{ $badge['description'] }}"
-    class="inline-flex size-4 items-center justify-center rounded border {{ $badge['color']['bg'] }} {{ $badge['color']['border'] }}"
+    title="{{ $badge->label() }} — {{ $badge->description() }}"
+    class="inline-flex size-4 items-center justify-center rounded border {{ $color['bg'] }} {{ $color['border'] }}"
 >
-    <x-badge-svg :badgeId="$badge['id']" class="size-3 {{ $badge['color']['text'] }}" />
+    <x-dynamic-component :component="$badge->icon()" class="size-3 {{ $color['text'] }}" />
 </span>

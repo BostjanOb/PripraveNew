@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\Badge;
 use App\Models\User;
 use App\Models\UserBadge;
-use App\Support\BadgeRegistry;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,7 +16,7 @@ class UserBadgeFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'badge_id' => fake()->randomElement(BadgeRegistry::ids()),
+            'badge_id' => fake()->randomElement(Badge::cases()),
             'earned_at' => now(),
         ];
     }
