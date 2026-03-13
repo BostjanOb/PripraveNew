@@ -26,7 +26,7 @@ class BadgeService
     {
         $earned = $this->computeEarnedBadges($user);
 
-        $existing = $user->badges()->pluck('badge_id')->all();
+        $existing = $user->badges->pluck('badge_id')->all();
 
         $missing = array_diff(
             array_map(fn (Badge $b) => $b->value, $earned),

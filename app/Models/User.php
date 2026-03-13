@@ -148,11 +148,19 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function uploadCount(): int
     {
+        if ($this->documents_count) {
+            return $this->documents_count;
+        }
+
         return $this->documents()->count();
     }
 
     public function downloadCount(): int
     {
+        if ($this->download_records_count) {
+            return $this->download_records_count;
+        }
+
         return $this->downloadRecords()->count();
     }
 
@@ -163,6 +171,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function commentCount(): int
     {
+        if ($this->comments_count) {
+            return $this->comments_count;
+        }
+
         return $this->comments()->count();
     }
 
@@ -175,11 +187,19 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function distinctSubjectCount(): int
     {
+        if ($this->distinct_subject_count) {
+            return $this->distinct_subject_count;
+        }
+
         return $this->documents()->distinct('subject_id')->count('subject_id');
     }
 
     public function maxDocumentDownloads(): int
     {
+        if ($this->documents_max_downloads_count) {
+            return $this->documents_max_downloads_count;
+        }
+
         return (int) ($this->documents()->max('downloads_count') ?? 0);
     }
 
