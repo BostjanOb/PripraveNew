@@ -4,6 +4,7 @@ namespace App\Services\Documents;
 
 use App\Models\Document;
 use App\Models\DocumentFile;
+use App\Support\Documents\DocumentZipPath;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -65,7 +66,7 @@ class DocumentFileSyncService
      */
     protected function storeFilesZip(Document $document, Collection $retainedFiles, array $uploadedFiles): string
     {
-        $zipPath = "documents/{$document->id}/files.zip";
+        $zipPath = DocumentZipPath::forDocument($document->id);
 
         $tempPath = tempnam(sys_get_temp_dir(), 'doc_zip_');
         $zip = new ZipArchive;

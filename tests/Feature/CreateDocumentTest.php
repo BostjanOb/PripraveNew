@@ -8,6 +8,7 @@ use App\Models\Grade;
 use App\Models\SchoolType;
 use App\Models\Subject;
 use App\Models\User;
+use App\Support\Documents\DocumentZipPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +28,7 @@ function storeDocumentZip(int $documentId, array $files): void
 
     $zip->close();
 
-    Storage::put("documents/{$documentId}/files.zip", file_get_contents($tempPath));
+    Storage::put(DocumentZipPath::forDocument($documentId), file_get_contents($tempPath));
     unlink($tempPath);
 }
 
@@ -98,7 +99,7 @@ it('creates a document with priprava category', function () {
     $docFile = $document->files->first();
     expect($docFile->original_name)->toBe('test.pdf')
         ->and($docFile->extension)->toBe('pdf')
-        ->and($docFile->storage_path)->toEndWith('files.zip');
+        ->and($docFile->storage_path)->toBe(DocumentZipPath::forDocument($document->id));
 
     Storage::assertExists($docFile->storage_path);
 });
@@ -191,7 +192,7 @@ it('populates document fields when editing', function () {
     DocumentFile::factory()->create([
         'document_id' => $document->id,
         'original_name' => 'obstojeci.pdf',
-        'storage_path' => "documents/{$document->id}/files.zip",
+        'storage_path' => DocumentZipPath::forDocument($document->id),
         'extension' => 'pdf',
         'mime_type' => 'application/pdf',
         'size_bytes' => 1024,
@@ -237,12 +238,12 @@ it('updates an existing document without requiring new files', function () {
         'description' => 'Stari opis',
     ]);
 
-    Storage::put("documents/{$document->id}/files.zip", 'existing-file');
+    Storage::put(DocumentZipPath::forDocument($document->id), 'existing-file');
 
     DocumentFile::factory()->create([
         'document_id' => $document->id,
         'original_name' => 'obstojeci.pdf',
-        'storage_path' => "documents/{$document->id}/files.zip",
+        'storage_path' => DocumentZipPath::forDocument($document->id),
         'extension' => 'pdf',
         'mime_type' => 'application/pdf',
         'size_bytes' => 1024,
@@ -275,7 +276,7 @@ it('updates an existing document without requiring new files', function () {
     expect($document->files)->toHaveCount(1)
         ->and($document->files->first()->original_name)->toBe('obstojeci.pdf');
 
-    Storage::assertExists("documents/{$document->id}/files.zip");
+    Storage::assertExists(DocumentZipPath::forDocument($document->id));
 });
 
 it('appends new files to existing document files during editing', function () {
@@ -303,7 +304,7 @@ it('appends new files to existing document files during editing', function () {
     DocumentFile::factory()->create([
         'document_id' => $document->id,
         'original_name' => 'old.pdf',
-        'storage_path' => "documents/{$document->id}/files.zip",
+        'storage_path' => DocumentZipPath::forDocument($document->id),
         'extension' => 'pdf',
         'mime_type' => 'application/pdf',
         'size_bytes' => 1024,
@@ -326,7 +327,7 @@ it('appends new files to existing document files during editing', function () {
         ->toContain('old.pdf')
         ->toContain('novo.pdf');
 
-    Storage::assertExists("documents/{$document->id}/files.zip");
+    Storage::assertExists(DocumentZipPath::forDocument($document->id));
 });
 
 it('removes selected existing files during editing', function () {
@@ -355,7 +356,7 @@ it('removes selected existing files during editing', function () {
     $firstFile = DocumentFile::factory()->create([
         'document_id' => $document->id,
         'original_name' => 'first.pdf',
-        'storage_path' => "documents/{$document->id}/files.zip",
+        'storage_path' => DocumentZipPath::forDocument($document->id),
         'extension' => 'pdf',
         'mime_type' => 'application/pdf',
         'size_bytes' => 1024,
@@ -364,7 +365,7 @@ it('removes selected existing files during editing', function () {
     $secondFile = DocumentFile::factory()->create([
         'document_id' => $document->id,
         'original_name' => 'second.pdf',
-        'storage_path' => "documents/{$document->id}/files.zip",
+        'storage_path' => DocumentZipPath::forDocument($document->id),
         'extension' => 'pdf',
         'mime_type' => 'application/pdf',
         'size_bytes' => 1024,
@@ -384,7 +385,7 @@ it('removes selected existing files during editing', function () {
         ->and(DocumentFile::withTrashed()->find($firstFile->id)?->trashed())->toBeTrue()
         ->and(DocumentFile::find($secondFile->id))->not->toBeNull();
 
-    Storage::assertExists("documents/{$document->id}/files.zip");
+    Storage::assertExists(DocumentZipPath::forDocument($document->id));
 });
 
 it('requires at least one file to remain when editing', function () {
@@ -408,7 +409,7 @@ it('requires at least one file to remain when editing', function () {
     DocumentFile::factory()->create([
         'document_id' => $document->id,
         'original_name' => 'only.pdf',
-        'storage_path' => "documents/{$document->id}/files.zip",
+        'storage_path' => DocumentZipPath::forDocument($document->id),
         'extension' => 'pdf',
         'mime_type' => 'application/pdf',
         'size_bytes' => 1024,

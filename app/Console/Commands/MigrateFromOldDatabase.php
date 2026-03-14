@@ -70,6 +70,17 @@ class MigrateFromOldDatabase extends Command
         $this->populateDownloadDailyStats();
         $this->populateUserDownloadsCounts();
 
+        $this->info('Set document user timestamps...');
+        DB::statement('
+                UPDATE document_user du
+                INNER JOIN (
+                    SELECT user_id, document_id, MIN(created_at) AS min_created_at
+                    FROM download_records
+                    GROUP BY user_id, document_id
+                ) dr ON du.user_id = dr.user_id AND du.document_id = dr.document_id
+                SET du.created_at = dr.min_created_at;
+            ');
+
         $this->info('Migration complete.');
 
         return self::SUCCESS;
