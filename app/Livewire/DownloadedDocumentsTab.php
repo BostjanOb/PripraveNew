@@ -19,7 +19,7 @@ class DownloadedDocumentsTab extends Component
         $documents = $user->downloadedDocuments()
             ->with(['schoolType', 'category', 'grade', 'subject', 'user'])
             ->latest('document_user.created_at')
-            ->paginate(10);
+            ->paginate(15);
 
         return view('livewire.downloaded-documents-tab', [
             'documents' => $documents,

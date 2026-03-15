@@ -59,36 +59,36 @@
                 </div>
 
                 {{-- Stats cards --}}
-                <div class="mt-8 grid grid-cols-3 gap-3">
-                    <div class="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
+                <div x-data class="mt-8 grid grid-cols-3 gap-3">
+                    <button @click="$dispatch('set-tab', 'uploaded')" class="flex cursor-pointer items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:scale-[1.02] hover:shadow-md dark:border-emerald-800 dark:bg-emerald-950/30">
                         <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/50">
                             <x-icon-regular.upload class="size-5 text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <div>
+                        <div class="text-left">
                             <p class="text-xl font-bold text-emerald-700 dark:text-emerald-400">{{ $uploadCount }}</p>
                             <p class="text-xs text-emerald-600 dark:text-emerald-300">Naloženih</p>
                         </div>
-                    </div>
+                    </button>
 
-                    <div class="flex items-center gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-950/30">
+                    <button @click="$dispatch('set-tab', 'downloaded')" class="flex cursor-pointer items-center gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 transition hover:scale-[1.02] hover:shadow-md dark:border-sky-800 dark:bg-sky-950/30">
                         <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-900/50">
                             <x-icon-regular.download class="size-5 text-sky-600 dark:text-sky-400" />
                         </div>
-                        <div>
+                        <div class="text-left">
                             <p class="text-xl font-bold text-sky-700 dark:text-sky-400">{{ $downloadCount }}</p>
                             <p class="text-xs text-sky-600 dark:text-sky-300">Prenesenih</p>
                         </div>
-                    </div>
+                    </button>
 
-                    <div class="flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 dark:border-rose-800 dark:bg-rose-950/30">
+                    <button @click="$dispatch('set-tab', 'saved')" class="flex cursor-pointer items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:scale-[1.02] hover:shadow-md dark:border-rose-800 dark:bg-rose-950/30">
                         <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-900/50">
                             <x-icon-regular.heart class="size-5 text-rose-600 dark:text-rose-400" />
                         </div>
-                        <div>
+                        <div class="text-left">
                             <p class="text-xl font-bold text-rose-700 dark:text-rose-400">{{ $savedCount }}</p>
                             <p class="text-xs text-rose-600 dark:text-rose-300">Shranjenih</p>
                         </div>
-                    </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -104,7 +104,8 @@
 
         {{-- ── Tabs section ── --}}
         <div class="relative mx-auto max-w-6xl px-4 py-8 md:py-12"
-             x-data="{ activeTab: 'uploaded' }">
+             x-data="{ activeTab: 'uploaded' }"
+             @set-tab.window="activeTab = $event.detail; $el.scrollIntoView({ behavior: 'smooth', block: 'start' })">
 
             <div class="mb-6 flex h-auto w-full justify-start gap-1 rounded-xl border border-border bg-card p-1.5">
                 <button

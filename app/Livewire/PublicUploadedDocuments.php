@@ -18,7 +18,7 @@ class PublicUploadedDocuments extends Component
         $documents = Document::where('user_id', $this->userId)
             ->with(['schoolType', 'category', 'grade', 'subject', 'user'])
             ->latest()
-            ->paginate(5);
+            ->paginate(15);
 
         return view('livewire.public-uploaded-documents', [
             'documents' => $documents,

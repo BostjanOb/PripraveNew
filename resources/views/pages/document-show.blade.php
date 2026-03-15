@@ -136,13 +136,13 @@
 
                     {{-- Meta row --}}
                     <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border pt-5 text-sm text-muted-foreground">
-                        <span class="flex items-center gap-1.5">
+                        <a href="{{ route('profile.show', $document->user) }}" class="flex items-center gap-1.5 transition-colors hover:text-foreground">
                             <x-icon-regular.user class="size-4" />
-                            <span class="font-medium text-foreground">{{ $document->user?->display_name }}</span>
+                            <span class="font-medium text-foreground underline-offset-2 hover:underline">{{ $document->user?->display_name }}</span>
                             @if($authorBadge)
                                 <x-badge-inline :badge="$authorBadge" />
                             @endif
-                        </span>
+                        </a>
                         <span class="flex items-center gap-1.5">
                             <x-icon-regular.clock class="size-4" />
                             {{ $document->created_at->format('d.m.Y H:i') }}
@@ -219,6 +219,13 @@
                                 <x-icon-regular.download class="size-5" />
                                 Prenesi vse datoteke (ZIP)
                             </a>
+                        </div>
+                    @else
+                        <div class="mt-5 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/50">
+                            <x-icon-regular.lock class="size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                            <p class="text-sm text-amber-800 dark:text-amber-300">
+                                Za prenos datotek se morate <a href="{{ route('login') }}" class="font-semibold underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-200">prijaviti</a>.
+                            </p>
                         </div>
                     @endauth
                 </div>

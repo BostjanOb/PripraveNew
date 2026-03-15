@@ -20,7 +20,7 @@ class SavedDocumentsTab extends Component
             ->savedDocuments()
             ->with(['schoolType', 'category', 'grade', 'subject', 'user'])
             ->latest('saved_documents.created_at')
-            ->paginate(10);
+            ->paginate(15);
 
         return view('livewire.saved-documents-tab', [
             'documents' => $documents,

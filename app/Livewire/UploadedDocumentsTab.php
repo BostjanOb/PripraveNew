@@ -38,7 +38,7 @@ class UploadedDocumentsTab extends Component
             ->with(['schoolType', 'category', 'grade', 'subject'])
             ->when($this->search, fn ($q) => $q->where('title', 'like', '%'.$this->search.'%'))
             ->latest()
-            ->paginate(10);
+            ->paginate(15);
 
         return view('livewire.uploaded-documents-tab', [
             'documents' => $documents,
