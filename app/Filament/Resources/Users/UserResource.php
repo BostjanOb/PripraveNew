@@ -36,6 +36,13 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
+    protected static ?string $recordTitleAttribute = 'email';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['email', 'name', 'display_name'];
+    }
+
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema);

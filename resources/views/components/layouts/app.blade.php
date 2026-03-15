@@ -67,7 +67,7 @@
                 </flux:dropdown>
 
                 <flux:button as="a" href="{{ url('/dodajanje') }}"
-                    variant="outline"
+                    variant="primary"
                     icon="icon-regular.plus"
                     class="h-9!">
                     Dodaj pripravo
@@ -149,7 +149,7 @@
                     <flux:radio value="system" icon="computer-desktop">Sistemski</flux:radio>
                 </flux:radio.group>
 
-                <flux:button as="a" href="{{ url('/dodajanje') }}" variant="outline" size="sm" class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 !py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+                <flux:button as="a" href="{{ url('/dodajanje') }}" variant="primary" size="sm" class="w-full">
                     <x-icon-regular.plus class="size-3.5" />
                     Dodaj pripravo
                 </flux:button>
