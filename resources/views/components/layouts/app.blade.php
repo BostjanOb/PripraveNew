@@ -66,12 +66,11 @@
                     </flux:menu>
                 </flux:dropdown>
 
-                <flux:button as="a" href="{{ url('/dodajanje') }}"
-                    variant="primary"
-                    icon="icon-regular.plus"
-                    class="h-9!">
+                <a href="{{ url('/dodajanje') }}"
+                    class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-linear-to-r from-amber-500 to-orange-600 px-4 text-sm font-semibold text-white shadow-md shadow-orange-200/50 transition-all hover:shadow-lg hover:shadow-orange-200/60 hover:brightness-105 dark:shadow-orange-900/30 dark:hover:shadow-orange-900/40">
+                    <x-icon-regular.plus class="size-3.5" />
                     Dodaj pripravo
-                </flux:button>
+                </a>
 
                 @auth
                     <flux:dropdown position="bottom" align="end">
@@ -149,10 +148,11 @@
                     <flux:radio value="system" icon="computer-desktop">Sistemski</flux:radio>
                 </flux:radio.group>
 
-                <flux:button as="a" href="{{ url('/dodajanje') }}" variant="primary" size="sm" class="w-full">
+                <a href="{{ url('/dodajanje') }}"
+                    class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-linear-to-r from-amber-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-orange-200/50 transition-all hover:shadow-lg hover:shadow-orange-200/60 hover:brightness-105 dark:shadow-orange-900/30 dark:hover:shadow-orange-900/40">
                     <x-icon-regular.plus class="size-3.5" />
                     Dodaj pripravo
-                </flux:button>
+                </a>
 
                 @auth
                     <a href="{{ url('/profil') }}" class="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 transition-colors hover:bg-secondary">
