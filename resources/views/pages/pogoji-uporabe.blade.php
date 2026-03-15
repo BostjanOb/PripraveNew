@@ -2,41 +2,37 @@
     @php
         $sections = [
             [
-                'title' => '1. Splosni pogoji',
-                'content' => 'S prijavo in uporabo spletne strani Priprave.net se uporabnik strinja s temi pogoji uporabe. Priprave.net si pridrzuje pravico do spremembe pogojev uporabe brez predhodnega obvestila. Spremenjeni pogoji zacnejo veljati z dnem objave na spletni strani.',
+                'title' => '1. Splošni pogoji',
+                'content' => 'S prijavo in uporabo spletne strani Priprave.net se uporabnik strinja s temi pogoji uporabe. Priprave.net si pridržuje pravico do spremembe pogojev uporabe brez predhodnega obvestila. Spremenjeni pogoji začnejo veljati z dnem objave na spletni strani.',
             ],
             [
-                'title' => '2. Registracija in uporabniski racun',
-                'content' => 'Za uporabo nekaterih funkcij strani je potrebna registracija. Uporabnik je odgovoren za tocnost podatkov, ki jih posreduje ob registraciji. Vsak uporabnik lahko ima samo en racun. Uporabnik je odgovoren za varnost svojega gesla in racuna.',
+                'title' => '2. Registracija in uporabniški račun',
+                'content' => 'Za uporabo nekaterih funkcij strani je potrebna registracija. Uporabnik je odgovoren za točnost podatkov, ki jih posreduje ob registraciji. Vsak uporabnik lahko ima samo en račun. Uporabnik je odgovoren za varnost svojega gesla in računa.',
             ],
             [
                 'title' => '3. Nalaganje in deljenje vsebin',
-                'content' => 'Uporabnik z nalaganjem gradiv jamci, da je avtor nalozene vsebine ali da ima ustrezna dovoljenja za deljenje. Uporabnik se strinja, da bo nalozeno gradivo dostopno drugim uporabnikom strani brezplacno. Prepovedano je nalaganje vsebin, ki krsijo avtorske pravice tretjih oseb.',
+                'content' => 'Uporabnik z nalaganjem gradiv jamči, da je avtor naložene vsebine ali da ima ustrezna dovoljenja za deljenje. Uporabnik se strinja, da bo naloženo gradivo dostopno drugim uporabnikom strani brezplačno. Prepovedano je nalaganje vsebin, ki kršijo avtorske pravice tretjih oseb.',
             ],
             [
                 'title' => '4. Avtorske pravice',
-                'content' => 'Avtor nalozene priprave ohrani vse avtorske pravice nad svojo vsebino. Z nalaganjem na Priprave.net avtor podeljuje neizklucno licenco za prikaz in prenos gradiva drugim uporabnikom v izobrazevalnem namen. Uporabniki smejo prenasati gradiva izkljucno za lastno pedagosko uporabo.',
+                'content' => 'Avtor naložene priprave ohrani vse avtorske pravice nad svojo vsebino. Z nalaganjem na Priprave.net avtor podeljuje neizključno licenco za prikaz in prenos gradiva drugim uporabnikom v izobraževalnem namenu. Uporabniki smejo prenašati gradiva izključno za lastno pedagoško uporabo.',
             ],
             [
-                'title' => '5. Pravila obnasanja',
-                'content' => 'Uporabniki morajo spoštovati druge clane skupnosti. Prepovedano je objavljanje zaljivih, neustreznih ali diskriminatornih vsebin. Prepovedano je nezeleno oglasevanje ali spam. Krsitve pravil lahko vodijo do zacasne ali trajne blokade racuna.',
+                'title' => '5. Pravila obnašanja',
+                'content' => 'Uporabniki morajo spoštovati druge člane skupnosti. Prepovedano je objavljanje žaljivih, neustreznih ali diskriminatornih vsebin. Prepovedano je neželeno oglaševanje ali spam. Kršitve pravil lahko vodijo do začasne ali trajne blokade računa.',
             ],
             [
                 'title' => '6. Odgovornost',
-                'content' => 'Priprave.net ne prevzema odgovornosti za tocnost, popolnost ali kakovost nalozenih priprav. Uporabniki nalozijo in uporabljajo gradiva na lastno odgovornost. Priprave.net si pridrzuje pravico do odstranitve vsebin, ki krsijo te pogoje ali veljavno zakonodajo.',
+                'content' => 'Priprave.net ne prevzema odgovornosti za točnost, popolnost ali kakovost naloženih priprav. Uporabniki naložijo in uporabljajo gradiva na lastno odgovornost. Priprave.net si pridržuje pravico do odstranitve vsebin, ki kršijo te pogoje ali veljavno zakonodajo.',
             ],
             [
                 'title' => '7. Zasebnost in varstvo podatkov',
-                'content' => 'Priprave.net zbira in obdeluje osebne podatke v skladu z veljavno zakonodajo o varstvu osebnih podatkov (GDPR). Podrobnejse informacije o obdelavi podatkov so na voljo v politiki zasebnosti. Uporabnik ima pravico do vpogleda, popravka in izbrisa svojih osebnih podatkov.',
+                'content' => 'Priprave.net zbira in obdeluje osebne podatke v skladu z veljavno zakonodajo o varstvu osebnih podatkov (GDPR). Podrobnejše informacije o obdelavi podatkov so na voljo v politiki zasebnosti. Uporabnik ima pravico do vpogleda, popravka in izbrisa svojih osebnih podatkov.',
             ],
             [
                 'title' => '8. Prekinitev uporabe',
-                'content' => 'Uporabnik lahko kadar koli zapre svoj racun. Priprave.net si pridrzuje pravico do prekinitve ali omejitve dostopa uporabniku, ki krsi pogoje uporabe. Ob prekinitvi racuna se nalozene priprave lahko ohranijo na strani.',
-            ],
-            [
-                'title' => '9. Koncne dolocbe',
-                'content' => 'Za razmerja med uporabnikom in Priprave.net se uporablja pravo Republike Slovenije. Za resevanje morebitnih sporov je pristojno sodisce v Ljubljani. Ti pogoji uporabe veljajo od 1. januarja 2026.',
-            ],
+                'content' => 'Uporabnik lahko kadar koli zapre svoj račun. Priprave.net si pridržuje pravico do prekinitve ali omejitve dostopa uporabniku, ki krši pogoje uporabe. Ob prekinitvi računa se naložene priprave lahko ohranijo na strani.',
+            ]
         ];
     @endphp
 
