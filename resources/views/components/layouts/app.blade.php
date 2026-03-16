@@ -1,25 +1,78 @@
 @props([
     'title' => config('app.name', 'Priprave.net'),
-    'mainClass' => 'flex-1'
+    'mainClass' => 'flex-1',
+    'metaDescription' => null,
+    'canonical' => null,
+    'robots' => null,
+    'ogTitle' => null,
+    'ogDescription' => null,
+    'ogImage' => null,
+    'ogType' => 'website',
+    'twitterCard' => 'summary_large_image',
 ])
+@php
+    $defaultRobots = request()->routeIs([
+        'login',
+        'register',
+        'logout',
+        'password.*',
+        'verification.*',
+        'profile',
+        'profile.edit',
+        'document.create',
+        'social.*',
+    ]) ? 'noindex,nofollow' : 'index,follow';
+
+    $resolvedTitle = trim((string) $title);
+    $resolvedMetaDescription = filled($metaDescription) ? trim((string) $metaDescription) : null;
+    $resolvedCanonical = $canonical ?? url()->current();
+    $resolvedRobots = $robots ?? $defaultRobots;
+    $resolvedOgTitle = $ogTitle ?? $resolvedTitle;
+    $resolvedOgDescription = $ogDescription ?? $resolvedMetaDescription;
+    $resolvedOgImage = $ogImage ?? asset('images/logo.png');
+@endphp
 <!DOCTYPE html>
 <html lang="sl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title }}</title>
+    <title>{{ $resolvedTitle }}</title>
+    @if ($resolvedMetaDescription)
+        <meta name="description" content="{{ $resolvedMetaDescription }}">
+    @endif
+    <meta name="robots" content="{{ $resolvedRobots }}">
+    <link rel="canonical" href="{{ $resolvedCanonical }}">
+    <meta property="og:locale" content="sl_SI">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:title" content="{{ $resolvedOgTitle }}">
+    <meta property="og:url" content="{{ $resolvedCanonical }}">
+    @if ($resolvedOgDescription)
+        <meta property="og:description" content="{{ $resolvedOgDescription }}">
+    @endif
+    @if ($resolvedOgImage)
+        <meta property="og:image" content="{{ $resolvedOgImage }}">
+    @endif
+    <meta name="twitter:card" content="{{ $twitterCard }}">
+    <meta name="twitter:title" content="{{ $resolvedOgTitle }}">
+    @if ($resolvedOgDescription)
+        <meta name="twitter:description" content="{{ $resolvedOgDescription }}">
+    @endif
+    @if ($resolvedOgImage)
+        <meta name="twitter:image" content="{{ $resolvedOgImage }}">
+    @endif
 
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&family=source-serif-4:400,600,700&display=swap" rel="stylesheet">
 
     {{ $head ?? '' }}
+    {{ $structuredData ?? '' }}
     @vite(['resources/css/app.css'])
     @livewireStyles
     @fluxAppearance
@@ -42,7 +95,7 @@
             {{-- Logo --}}
             <a href="{{ url('/') }}" class="flex items-center gap-2">
                 <div class="relative flex items-center justify-center">
-                    <img src="/images/icon.png" class="h-9"/>
+                    <img src="/images/icon.png" alt="Priprave.net logotip" class="h-9" />
                 </div>
                 <span class="font-serif text-lg font-bold tracking-tight text-foreground">
                     Priprave<span class="text-primary">.net</span>
@@ -205,7 +258,7 @@
                 <div>
                     <a href="{{ url('/') }}" class="flex items-center gap-2">
                         <div class="flex items-center justify-center">
-                            <img src="/images/icon.png" class="h-8"/>
+                            <img src="/images/icon.png" alt="Priprave.net logotip" class="h-8" />
                         </div>
                         <span class="text-base font-bold text-foreground">
                             Priprave<span class="text-primary">.net</span>

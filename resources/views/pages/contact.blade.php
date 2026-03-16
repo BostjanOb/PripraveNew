@@ -1,4 +1,8 @@
-<x-layouts.app title="Kontakt">
+<x-layouts.app
+    title="Kontakt | Priprave.net"
+    metaDescription="Pišite ekipi Priprave.net za vprašanja, predloge ali pomoč pri uporabi spletne zbirke učnih gradiv."
+    :canonical="route('contact')"
+>
     <section class="border-b border-border bg-card">
         <div class="mx-auto max-w-4xl px-4 py-12 text-center md:py-16">
             <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/40">

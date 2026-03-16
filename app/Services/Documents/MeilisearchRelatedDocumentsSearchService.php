@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Meilisearch\Client;
 use Meilisearch\Contracts\SearchQuery;
+use Throwable;
 
 final readonly class MeilisearchRelatedDocumentsSearchService implements RelatedDocumentsSearchService
 {
@@ -19,26 +20,30 @@ final readonly class MeilisearchRelatedDocumentsSearchService implements Related
      */
     public function search(Document $document, int $limit = 3): Collection
     {
-        return Cache::remember(
-            $this->cacheKey($document, $limit),
-            now()->addDay(),
-            function () use ($document, $limit): Collection {
-                $searchQueries = collect($this->buildQueries($document, $limit))
-                    ->map(fn (array $query): SearchQuery => $this->toSearchQuery($query))
-                    ->all();
+        try {
+            return Cache::remember(
+                $this->cacheKey($document, $limit),
+                now()->addDay(),
+                function () use ($document, $limit): Collection {
+                    $searchQueries = collect($this->buildQueries($document, $limit))
+                        ->map(fn (array $query): SearchQuery => $this->toSearchQuery($query))
+                        ->all();
 
-                $response = $this->meilisearchClient->multiSearch($searchQueries);
-                $documentIds = collect($response['results'] ?? [])
-                    ->flatMap(fn (array $result): Collection => collect($result['hits'] ?? [])->pluck('id'))
-                    ->map(fn (mixed $id): int => (int) $id)
-                    ->reject(fn (int $id): bool => $id === $document->id)
-                    ->unique()
-                    ->take($limit)
-                    ->values();
+                    $response = $this->meilisearchClient->multiSearch($searchQueries);
+                    $documentIds = collect($response['results'] ?? [])
+                        ->flatMap(fn (array $result): Collection => collect($result['hits'] ?? [])->pluck('id'))
+                        ->map(fn (mixed $id): int => (int) $id)
+                        ->reject(fn (int $id): bool => $id === $document->id)
+                        ->unique()
+                        ->take($limit)
+                        ->values();
 
-                return $this->hydrateDocuments($documentIds);
-            },
-        );
+                    return $this->hydrateDocuments($documentIds);
+                },
+            );
+        } catch (Throwable) {
+            return $this->fallbackDocuments($document, $limit);
+        }
     }
 
     /**
@@ -136,6 +141,15 @@ final readonly class MeilisearchRelatedDocumentsSearchService implements Related
             ->get()
             ->sortBy(fn (Document $relatedDocument): int => (int) $documentIds->search($relatedDocument->id))
             ->values();
+    }
+
+    /**
+     * @return Collection<int, Document>
+     */
+    private function fallbackDocuments(Document $document, int $limit): Collection
+    {
+        return $document->relatedDocuments($limit)
+            ->loadMissing(['category', 'schoolType', 'grade', 'subject', 'user']);
     }
 
     /**

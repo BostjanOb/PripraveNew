@@ -210,6 +210,96 @@ class Document extends Model
         ]);
     }
 
+    public function metaDescription(): string
+    {
+        if (filled($this->description)) {
+            return Str::limit(trim((string) $this->description), 160);
+        }
+
+        $context = collect([
+            $this->category?->name,
+            $this->subject?->name,
+            $this->grade?->name,
+            $this->schoolType?->name,
+            $this->topic,
+        ])->filter()->implode(', ');
+
+        return Str::limit(
+            trim("{$this->title}. {$context}. Prenesite učno gradivo na Priprave.net."),
+            160,
+        );
+    }
+
+    public function structuredData(): string
+    {
+        $url = route('document.show', $this);
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                array_filter([
+                    '@type' => 'LearningResource',
+                    '@id' => $url.'#learning-resource',
+                    'name' => $this->title,
+                    'description' => $this->metaDescription(),
+                    'url' => $url,
+                    'inLanguage' => 'sl',
+                    'isAccessibleForFree' => true,
+                    'learningResourceType' => $this->category?->name,
+                    'educationalLevel' => $this->schoolType?->name,
+                    'keywords' => $this->keywords,
+                    'about' => array_values(array_filter([
+                        $this->topic,
+                        $this->subject?->name,
+                        $this->grade?->name,
+                    ])),
+                    'author' => $this->user ? [
+                        '@type' => 'Person',
+                        'name' => $this->user->display_name,
+                        'url' => route('profile.show', $this->user),
+                    ] : null,
+                    'datePublished' => $this->created_at?->utc()->toAtomString(),
+                    'dateModified' => $this->updated_at?->utc()->toAtomString(),
+                ], fn (mixed $value): bool => filled($value)),
+                [
+                    '@type' => 'BreadcrumbList',
+                    '@id' => $url.'#breadcrumbs',
+                    'itemListElement' => array_values(array_filter([
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 1,
+                            'name' => 'Priprave.net',
+                            'item' => route('home'),
+                        ],
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 2,
+                            'name' => 'Brskanje',
+                            'item' => route('browse'),
+                        ],
+                        $this->schoolType ? [
+                            '@type' => 'ListItem',
+                            'position' => 3,
+                            'name' => $this->schoolType->name,
+                            'item' => route('browse', ['stopnja' => $this->schoolType->slug]),
+                        ] : null,
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 4,
+                            'name' => $this->title,
+                            'item' => $url,
+                        ],
+                    ])),
+                ],
+            ],
+        ];
+
+        return (string) json_encode(
+            $schema,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT,
+        );
+    }
+
     public static function generateUniqueSlug(string $title): string
     {
         $slug = Str::slug($title);

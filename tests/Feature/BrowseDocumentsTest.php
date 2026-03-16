@@ -188,7 +188,10 @@ it('renders responsive browse pagination controls', function () {
         ->assertSee('Nazaj')
         ->assertSee('Naprej')
         ->assertSee('class="flex gap-3 md:hidden"', false)
-        ->assertSee('class="hidden items-center justify-center gap-2 md:flex"', false);
+        ->assertSee('class="hidden items-center justify-center gap-2 md:flex"', false)
+        ->assertSee('wire:click="nextPage(\'page\')"', false)
+        ->assertSee('wire:click="gotoPage(2, \'page\')"', false)
+        ->assertDontSee('href="'.route('browse', ['page' => 2]).'"', false);
 });
 
 it('uses alpine for subject filter search', function () {

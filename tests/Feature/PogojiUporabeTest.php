@@ -6,5 +6,6 @@ it('loads terms of use page', function () {
         ->assertSee('Pogoji uporabe')
         ->assertSee('Pravila in pogoji za uporabo spletne strani Priprave.net')
         ->assertSee('1. Splošni pogoji')
-        ->assertSee('9. Končne določbe');
+        ->assertSee('8. Prekinitev uporabe')
+        ->assertDontSee('9. Končne določbe');
 });

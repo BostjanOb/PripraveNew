@@ -21,6 +21,7 @@
 /storage/app
 /vendor
 /design
+/public/sitemap*.xml
 Homestead.json
 Homestead.yaml
 Thumbs.db

@@ -1,4 +1,19 @@
-<x-layouts.app :title="$user->display_name . ' – Profil'" mainClass="flex-1">
+@php
+    $profileMetaDescription = \Illuminate\Support\Str::limit(
+        $uploadCount > 0
+            ? "{$user->display_name} deli {$uploadCount} učnih gradiv na Priprave.net."
+            : "{$user->display_name} ima javni profil na Priprave.net, trenutno brez objavljenih gradiv.",
+        160,
+    );
+@endphp
+
+<x-layouts.app
+    :title="$user->display_name . ' | Profil avtorja na Priprave.net'"
+    mainClass="flex-1"
+    :meta-description="$profileMetaDescription"
+    :canonical="route('profile.show', $user)"
+    :robots="$uploadCount > 0 ? 'index,follow' : 'noindex,follow'"
+>
     <div class="relative">
 
         {{-- ── Hero section ── --}}

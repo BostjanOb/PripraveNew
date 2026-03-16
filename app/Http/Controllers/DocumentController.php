@@ -49,7 +49,9 @@ class DocumentController extends Controller
             ->with('isSaved', $isSaved)
             ->with('userRating', $userRating)
             ->with('relatedDocuments', $relatedDocuments)
-            ->with('authorBadge', $authorBadge);
+            ->with('authorBadge', $authorBadge)
+            ->with('metaDescription', $document->metaDescription())
+            ->with('structuredData', $document->structuredData());
     }
 
     public function downloadFile(Document $document, DocumentFile $file): StreamedResponse

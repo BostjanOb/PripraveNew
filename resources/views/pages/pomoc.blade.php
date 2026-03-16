@@ -1,4 +1,8 @@
-<x-layouts.app title="Pomoč">
+<x-layouts.app
+    title="Pomoč | Priprave.net"
+    metaDescription="Pogosta vprašanja in odgovori o uporabi Priprave.net, nalaganju gradiv, prenosih in uporabniškem računu."
+    :canonical="route('help')"
+>
     <section class="border-b border-border bg-card">
         <div class="mx-auto max-w-4xl px-4 py-12 text-center md:py-16">
             <div class="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-teal-100">

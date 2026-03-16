@@ -56,7 +56,7 @@ it('displays the member since date on the public profile', function () {
 it('renders the shared paginator on the public profile uploads tab', function () {
     $user = User::factory()->create();
 
-    Document::factory()->count(6)->create(['user_id' => $user->id]);
+    Document::factory()->count(16)->create(['user_id' => $user->id]);
 
     $this->get(route('profile.show', $user))
         ->assertSuccessful()
@@ -112,9 +112,9 @@ it('shows an empty state when the user has no uploads', function () {
 it('paginates documents with 5 per page', function () {
     $user = User::factory()->create();
 
-    // Create 6 docs with distinct timestamps so ordering is deterministic
+    // Create 16 docs with distinct timestamps so ordering is deterministic
     $docs = collect();
-    for ($i = 0; $i < 6; $i++) {
+    for ($i = 0; $i < 16; $i++) {
         $docs->push(Document::factory()->create([
             'user_id' => $user->id,
             'created_at' => now()->subMinutes($i),
@@ -131,9 +131,9 @@ it('paginates documents with 5 per page', function () {
 it('shows documents from the second page after navigating', function () {
     $user = User::factory()->create();
 
-    // Create 6 docs with distinct timestamps so ordering is deterministic
+    // Create 16 docs with distinct timestamps so ordering is deterministic
     $docs = collect();
-    for ($i = 0; $i < 6; $i++) {
+    for ($i = 0; $i < 16; $i++) {
         $docs->push(Document::factory()->create([
             'user_id' => $user->id,
             'created_at' => now()->subMinutes($i),

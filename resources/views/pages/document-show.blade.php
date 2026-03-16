@@ -1,4 +1,16 @@
-<x-layouts.app :title="$document->title . ' — Priprave.net'">
+<x-layouts.app
+    :title="$document->title . ' | Priprave.net'"
+    :meta-description="$metaDescription"
+    :canonical="route('document.show', $document)"
+    ogType="article"
+>
+<x-slot:head>
+    <meta property="article:published_time" content="{{ $document->created_at?->utc()->toAtomString() }}">
+    <meta property="article:modified_time" content="{{ $document->updated_at?->utc()->toAtomString() }}">
+</x-slot:head>
+<x-slot:structuredData>
+    <script type="application/ld+json">{!! $structuredData !!}</script>
+</x-slot:structuredData>
 
 @php
     // ── Color palette mappings ──

@@ -98,6 +98,36 @@ it('builds meilisearch similarity queries and hydrates unique related documents 
         ]);
 });
 
+it('falls back to database related documents when meilisearch is unavailable', function () {
+    Cache::flush();
+
+    $schoolType = SchoolType::factory()->create();
+    $grade = Grade::factory()->create(['school_type_id' => $schoolType->id]);
+    $subject = Subject::factory()->forSchoolType($schoolType)->create();
+    $category = Category::factory()->create();
+
+    $document = Document::factory()->create([
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+        'category_id' => $category->id,
+    ]);
+
+    $relatedDocument = Document::factory()->create([
+        'school_type_id' => $schoolType->id,
+        'grade_id' => $grade->id,
+        'subject_id' => $subject->id,
+        'category_id' => $category->id,
+    ]);
+
+    $service = new MeilisearchRelatedDocumentsSearchService(new FailingMeilisearchClient);
+
+    $relatedDocuments = $service->search($document, 1);
+
+    expect($relatedDocuments)->toHaveCount(1)
+        ->and($relatedDocuments->first()->is($relatedDocument))->toBeTrue();
+});
+
 final class FakeMeilisearchClient extends Client
 {
     /** @var list<array<string, mixed>> */
@@ -121,5 +151,15 @@ final class FakeMeilisearchClient extends Client
         );
 
         return $this->response;
+    }
+}
+
+final class FailingMeilisearchClient extends Client
+{
+    public function __construct() {}
+
+    public function multiSearch(array $queries = [], ?MultiSearchFederation $federation = null)
+    {
+        throw new RuntimeException('Meilisearch is unavailable.');
     }
 }

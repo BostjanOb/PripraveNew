@@ -13,7 +13,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -132,7 +131,6 @@ class BrowseDocuments extends Component
         $this->resetPage();
     }
 
-    #[Layout('components.layouts.app')]
     public function render(): View
     {
         $allCategories = $this->categories->flatMap(
@@ -186,7 +184,13 @@ class BrowseDocuments extends Component
             'schoolTypeConfig' => $this->schoolTypeConfig,
             'selectedCategories' => $selectedCategories,
             'hasActiveFilters' => $this->hasActiveFilters(),
-        ]);
+        ])
+            ->layout('components.layouts.app', [
+                'metaDescription' => $this->metaDescription($schoolType),
+                'canonical' => route('browse'),
+                'robots' => $this->isIndexableBrowsePage() ? 'index,follow' : 'noindex,follow',
+            ])
+            ->title($this->pageTitle($schoolType));
     }
 
     /**
@@ -225,5 +229,48 @@ class BrowseDocuments extends Component
     private function browseSearchService(): BrowseSearchService
     {
         return app(BrowseSearchService::class);
+    }
+
+    private function isIndexableBrowsePage(): bool
+    {
+        return $this->search === ''
+            && $this->schoolTypeSlug === null
+            && $this->gradeId === null
+            && $this->subjectId === null
+            && $this->categoryIds === []
+            && $this->getPage() === 1;
+    }
+
+    private function pageTitle(?SchoolType $schoolType): string
+    {
+        if ($this->isIndexableBrowsePage()) {
+            return 'Brskanje po pripravah | Priprave.net';
+        }
+
+        if ($this->search !== '') {
+            return Str::limit("Rezultati iskanja za {$this->search} | Priprave.net", 60);
+        }
+
+        if ($schoolType !== null) {
+            return "Brskanje po pripravah za {$schoolType->name} | Priprave.net";
+        }
+
+        return 'Filtrirane priprave | Priprave.net';
+    }
+
+    private function metaDescription(?SchoolType $schoolType): string
+    {
+        if ($this->isIndexableBrowsePage()) {
+            return 'Brskajte po učnih pripravah, delovnih listih in testih za predšolsko vzgojo, osnovno in srednjo šolo na Priprave.net.';
+        }
+
+        $parts = collect([
+            $this->search !== '' ? "Iskanje: {$this->search}" : null,
+            $schoolType?->name,
+            $this->grades->firstWhere('id', $this->gradeId)?->name,
+            $this->subjectId ? Subject::find($this->subjectId)?->name : null,
+        ])->filter()->implode(', ');
+
+        return Str::limit("Filtrirani rezultati brskanja po pripravah. {$parts}.", 160);
     }
 }

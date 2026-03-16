@@ -71,15 +71,7 @@ class MigrateFromOldDatabase extends Command
         $this->populateUserDownloadsCounts();
 
         $this->info('Set document user timestamps...');
-        DB::statement('
-                UPDATE document_user du
-                INNER JOIN (
-                    SELECT user_id, document_id, MIN(created_at) AS min_created_at
-                    FROM download_records
-                    GROUP BY user_id, document_id
-                ) dr ON du.user_id = dr.user_id AND du.document_id = dr.document_id
-                SET du.created_at = dr.min_created_at;
-            ');
+        $this->syncDocumentUserTimestamps();
 
         $this->info('Migration complete.');
 
@@ -656,7 +648,9 @@ class MigrateFromOldDatabase extends Command
         $total = DB::connection('mysql_old')->table('uporabnik_ima_priprava')->count();
         $this->info("Total records: {$total}");
 
-        $migrated = $this->migrateDownloadRecordsFromUserDocumentsWithCrossDatabaseInsert();
+        $migrated = $this->supportsCrossDatabaseInsert()
+            ? $this->migrateDownloadRecordsFromUserDocumentsWithCrossDatabaseInsert()
+            : $this->migrateDownloadRecordsFromUserDocumentsWithChunkedFallback();
 
         $this->info("Download records (user-document): {$migrated} migrated.");
     }
@@ -672,7 +666,9 @@ class MigrateFromOldDatabase extends Command
         $total = DB::connection('mysql_old')->table('logPrenos')->count();
         $this->info("Total records: {$total}");
 
-        $migrated = $this->migrateDownloadRecordsFromLogWithCrossDatabaseInsert();
+        $migrated = $this->supportsCrossDatabaseInsert()
+            ? $this->migrateDownloadRecordsFromLogWithCrossDatabaseInsert()
+            : $this->migrateDownloadRecordsFromLogWithChunkedFallback();
 
         $this->info("Download records (logPrenos): {$migrated} migrated.");
     }
@@ -783,8 +779,8 @@ class MigrateFromOldDatabase extends Command
         $oldDb = DB::connection('mysql_old')->getDatabaseName();
 
         return DB::affectingStatement("
-            INSERT INTO `document_user` (`user_id`, `document_id`,  `created_at`)
-            SELECT `uip`.`uporabnikId`, `uip`.`pripravaId`, now()
+            INSERT INTO `download_records` (`user_id`, `document_id`, `document_file_id`, `created_at`)
+            SELECT `uip`.`uporabnikId`, `uip`.`pripravaId`, NULL, `p`.`datum`
             FROM `{$oldDb}`.`uporabnik_ima_priprava` AS `uip`
             INNER JOIN `{$oldDb}`.`priprava` AS `p` ON `p`.`pripravaId` = `uip`.`pripravaId`
             INNER JOIN `documents` AS `d` ON `d`.`id` = `uip`.`pripravaId`
@@ -820,6 +816,159 @@ class MigrateFromOldDatabase extends Command
             ) AS `single_document_files` ON `single_document_files`.`document_id` = `l`.`pripravaId`
             WHERE `l`.`uporabnikId` > 0
         ");
+    }
+
+    private function migrateDownloadRecordsFromUserDocumentsWithChunkedFallback(): int
+    {
+        $this->info('Using chunked fallback import for uporabnik_ima_priprava.');
+
+        $count = 0;
+
+        DB::connection('mysql_old')
+            ->table('uporabnik_ima_priprava')
+            ->orderBy('uporabnikId')
+            ->orderBy('pripravaId')
+            ->chunk($this->chunk, function ($rows) use (&$count): void {
+                $documentIds = collect($rows)->pluck('pripravaId')->map(fn (mixed $id): int => (int) $id)->all();
+                $userIds = collect($rows)->pluck('uporabnikId')->map(fn (mixed $id): int => (int) $id)->all();
+
+                $existingDocumentIds = $this->existingDocumentIds($documentIds);
+                $existingUserIds = $this->existingUserIds($userIds);
+                $legacyDocumentDates = $this->legacyDocumentDates($documentIds);
+
+                $records = [];
+
+                foreach ($rows as $row) {
+                    $documentId = (int) $row->pripravaId;
+                    $userId = (int) $row->uporabnikId;
+
+                    if (
+                        $userId <= 0
+                        || ! isset($existingDocumentIds[$documentId])
+                        || ! isset($existingUserIds[$userId])
+                        || ! isset($legacyDocumentDates[$documentId])
+                    ) {
+                        continue;
+                    }
+
+                    $records[] = [
+                        'user_id' => $userId,
+                        'document_id' => $documentId,
+                        'document_file_id' => null,
+                        'created_at' => $legacyDocumentDates[$documentId],
+                    ];
+                }
+
+                $this->insertDownloadRecords($records);
+                $count += count($records);
+            });
+
+        return $count;
+    }
+
+    private function migrateDownloadRecordsFromLogWithChunkedFallback(): int
+    {
+        $this->info('Using chunked fallback import for logPrenos.');
+
+        $count = 0;
+        $singleDocumentFileIds = $this->singleDocumentFileIds();
+
+        DB::connection('mysql_old')
+            ->table('logPrenos')
+            ->orderBy('id')
+            ->chunk($this->chunk, function ($rows) use (&$count, $singleDocumentFileIds): void {
+                $documentIds = collect($rows)->pluck('pripravaId')->map(fn (mixed $id): int => (int) $id)->all();
+                $userIds = collect($rows)->pluck('uporabnikId')->map(fn (mixed $id): int => (int) $id)->all();
+
+                $existingDocumentIds = $this->existingDocumentIds($documentIds);
+                $existingUserIds = $this->existingUserIds($userIds);
+
+                $records = [];
+
+                foreach ($rows as $row) {
+                    $documentId = (int) $row->pripravaId;
+                    $userId = (int) $row->uporabnikId;
+
+                    if ($userId <= 0 || ! isset($existingDocumentIds[$documentId]) || ! isset($existingUserIds[$userId])) {
+                        continue;
+                    }
+
+                    $records[] = [
+                        'user_id' => $userId,
+                        'document_id' => $documentId,
+                        'document_file_id' => $row->tip === 'datoteka'
+                            ? ($singleDocumentFileIds[$documentId] ?? null)
+                            : null,
+                        'created_at' => $row->cas,
+                    ];
+                }
+
+                $this->insertDownloadRecords($records);
+                $count += count($records);
+            });
+
+        return $count;
+    }
+
+    private function supportsCrossDatabaseInsert(): bool
+    {
+        return in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)
+            && in_array(DB::connection('mysql_old')->getDriverName(), ['mysql', 'mariadb'], true);
+    }
+
+    private function syncDocumentUserTimestamps(): void
+    {
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            DB::statement('
+                INSERT INTO `document_user` (`user_id`, `document_id`, `created_at`)
+                SELECT `user_id`, `document_id`, MIN(`created_at`) AS `created_at`
+                FROM `download_records`
+                GROUP BY `user_id`, `document_id`
+                ON DUPLICATE KEY UPDATE `created_at` = VALUES(`created_at`)
+            ');
+
+            return;
+        }
+
+        DB::table('download_records')
+            ->selectRaw('user_id, document_id, MIN(created_at) AS min_created_at')
+            ->groupBy('user_id', 'document_id')
+            ->orderBy('user_id')
+            ->orderBy('document_id')
+            ->chunk(1000, function ($rows): void {
+                $payload = collect($rows)
+                    ->map(fn (object $row): array => [
+                        'user_id' => (int) $row->user_id,
+                        'document_id' => (int) $row->document_id,
+                        'created_at' => $row->min_created_at,
+                    ])
+                    ->all();
+
+                DB::table('document_user')->upsert(
+                    $payload,
+                    ['user_id', 'document_id'],
+                    ['created_at'],
+                );
+            });
+    }
+
+    /**
+     * @param  array<int, int>  $documentIds
+     * @return array<int, string>
+     */
+    private function legacyDocumentDates(array $documentIds): array
+    {
+        if ($documentIds === []) {
+            return [];
+        }
+
+        return DB::connection('mysql_old')
+            ->table('priprava')
+            ->whereIn('pripravaId', $documentIds)
+            ->whereNotNull('datum')
+            ->pluck('datum', 'pripravaId')
+            ->mapWithKeys(fn (mixed $date, mixed $documentId): array => [(int) $documentId => (string) $date])
+            ->all();
     }
 
     /**

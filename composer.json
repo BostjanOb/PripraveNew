@@ -20,6 +20,7 @@
         "meilisearch/meilisearch-php": "^1.16",
         "ryangjchandler/laravel-cloudflare-turnstile": "^3.0",
         "sentry/sentry-laravel": "^4.22",
+        "spatie/laravel-sitemap": "^8.1",
         "spatie/laravel-sluggable": "^3.8",
         "stechstudio/filament-impersonate": "^5.1"
     },

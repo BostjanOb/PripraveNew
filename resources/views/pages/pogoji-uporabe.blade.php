@@ -1,4 +1,8 @@
-<x-layouts.app title="Pogoji uporabe">
+<x-layouts.app
+    title="Pogoji uporabe | Priprave.net"
+    metaDescription="Preberite pogoje uporabe spletne strani Priprave.net, pravila nalaganja gradiv in osnovne obveznosti uporabnikov."
+    :canonical="route('terms')"
+>
     @php
         $sections = [
             [
@@ -32,7 +36,7 @@
             [
                 'title' => '8. Prekinitev uporabe',
                 'content' => 'Uporabnik lahko kadar koli zapre svoj račun. Priprave.net si pridržuje pravico do prekinitve ali omejitve dostopa uporabniku, ki krši pogoje uporabe. Ob prekinitvi računa se naložene priprave lahko ohranijo na strani.',
-            ]
+            ],
         ];
     @endphp
 
