@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class PruneDownloadRecordsCommand extends Command
 {
-    protected $signature = 'download-records:prune {--days=90 : Delete records older than this many days}';
+    protected $signature = 'download-records:prune {--days=30 : Delete records older than this many days}';
 
     protected $description = 'Backfill daily aggregates and prune old download records';
 
