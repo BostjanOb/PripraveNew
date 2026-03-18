@@ -302,6 +302,52 @@
 
                 {{-- ── Comments section (Livewire SFC) ── --}}
                 <livewire:document.comment-section :$document />
+
+                {{-- Related documents --}}
+                @if($relatedDocuments->isNotEmpty())
+                    <div class="rounded-2xl border border-border bg-card p-6 md:p-8">
+                        <h3 class="flex items-center gap-2 text-lg font-bold text-foreground font-serif">
+                            <x-icon-regular.sparkles class="size-4 text-pink-400"/>
+                            Podobne priprave
+                        </h3>
+                        <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                            @foreach($relatedDocuments as $rel)
+                                @php
+                                    $relCategorySlug = $rel->category?->slug ?? 'priprava';
+                                    $relTp = $typePalette[$relCategorySlug] ?? $typePalette['priprava'];
+                                    $relSchoolSlug = $rel->schoolType?->slug ?? 'os';
+                                    $relLp = ($schoolTypeConfig[$relSchoolSlug] ?? $schoolTypeConfig['os'])['level'];
+                                @endphp
+                                <a href="{{ route('document.show', $rel) }}" class="group flex min-w-0 items-start gap-3 rounded-xl border border-border bg-background p-3 transition-all hover:border-pink-200 hover:shadow-sm">
+                                    <div class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg {{ $relTp['icon'] }}">
+                                        <x-icon-regular.layer-group class="size-4" />
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-medium text-foreground transition-colors group-hover:text-pink-600">
+                                            {{ $rel->title }}
+                                        </p>
+                                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                            @if($rel->grade)
+                                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $relLp['bg'] }} {{ $relLp['text'] }}">
+                                                    {{ $rel->grade->name }}
+                                                </span>
+                                            @endif
+                                            @if($rel->subject)
+                                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $subjectPalette['bg'] }} {{ $subjectPalette['text'] }}">
+                                                    {{ $rel->subject->name }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <p class="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+                                            <x-icon-regular.download class="size-3" />
+                                            {{ $rel->downloads_count }} prenosov
+                                        </p>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- ── Right sidebar ── --}}
@@ -455,54 +501,6 @@
                         @endforeach
                     </div>
                 </div>
-
-                {{-- Related documents --}}
-                @if($relatedDocuments->isNotEmpty())
-                    <div class="rounded-2xl border border-border bg-card p-5">
-                        <h3 class="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
-                            <x-icon-regular.sparkles class="size-4 text-pink-400"/>
-                            Podobne priprave
-                        </h3>
-                        <div class="space-y-2">
-                            @foreach($relatedDocuments as $rel)
-                                @php
-                                    $relCategorySlug = $rel->category?->slug ?? 'priprava';
-                                    $relTp = $typePalette[$relCategorySlug] ?? $typePalette['priprava'];
-                                    $relSchoolSlug = $rel->schoolType?->slug ?? 'os';
-                                    $relLp = ($schoolTypeConfig[$relSchoolSlug] ?? $schoolTypeConfig['os'])['level'];
-                                @endphp
-                                <a href="{{ route('document.show', $rel) }}" class="group block rounded-xl border border-border bg-background p-3 transition-all hover:border-pink-200 hover:shadow-sm">
-                                    <div class="flex items-start gap-2">
-                                        <div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg {{ $relTp['icon'] }}">
-                                            <x-icon-regular.layer-group  class="size-3.5" />
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-medium text-foreground transition-colors group-hover:text-pink-600">
-                                                {{ $rel->title }}
-                                            </p>
-                                            <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-                                                @if($rel->grade)
-                                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $relLp['bg'] }} {{ $relLp['text'] }}">
-                                                        {{ $rel->grade->name }}
-                                                    </span>
-                                                @endif
-                                                @if($rel->subject)
-                                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $subjectPalette['bg'] }} {{ $subjectPalette['text'] }}">
-                                                        {{ $rel->subject->name }}
-                                                    </span>
-                                                @endif
-                                            </div>
-                                            <p class="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
-                                                <x-icon-regular.download class="size-3" />
-                                                {{ $rel->downloads_count }} prenosov
-                                            </p>
-                                        </div>
-                                    </div>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
 
             </div>
         </div>

@@ -37,7 +37,7 @@ class DocumentController extends Controller
         $isSaved = $user && $user->savedDocuments()->where('document_id', $document->id)->exists();
         $userRating = $user ? $document->ratings()->where('user_id', $user->id)->value('rating') : null;
 
-        $relatedDocuments = $this->relatedDocumentsSearchService->search($document, 3);
+        $relatedDocuments = $this->relatedDocumentsSearchService->search($document, 4);
 
         // Author's highest contribution badge
         $authorBadge = $document->user
