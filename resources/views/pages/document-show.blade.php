@@ -418,14 +418,12 @@
                 <div class="py-2 text-center">
                     <div class="w-[300px] h-[250px] overflow-hidden mx-auto">
                         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7799323007690890"
-                                crossorigin="anonymous"></script>
+                            crossorigin="anonymous"></script>
                         <!-- priprave.net - view -->
                         <ins class="adsbygoogle"
-                            style="display:block"
+                            style="display:inline-block;width:300px;height:250px"
                             data-ad-client="ca-pub-7799323007690890"
-                            data-ad-slot="9807674695"
-                            data-ad-format="auto"
-                            data-full-width-responsive="true"></ins>
+                            data-ad-slot="9807674695"></ins>
                         <script>
                             (adsbygoogle = window.adsbygoogle || []).push({});
                         </script>
