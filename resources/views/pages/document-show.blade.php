@@ -416,7 +416,7 @@
 
                 {{-- AdSense banner --}}
                 <div class="py-2 text-center">
-                    <div class="w-[300px] mx-auto">
+                    <div class="w-[300px] h-[250px] overflow-hidden mx-auto">
                         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7799323007690890"
                                 crossorigin="anonymous"></script>
                         <!-- priprave.net - view -->
