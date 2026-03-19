@@ -23,6 +23,7 @@ Route::view('/kontakt', 'pages.contact')->name('contact');
 Route::view('/pogoji-uporabe', 'pages.pogoji-uporabe')->name('terms');
 
 Route::get('/brskanje', BrowseDocuments::class)->name('browse');
+Route::redirect('/priprave/ogled/{slug}', '/gradivo/{slug}', 301);
 Route::get('/gradivo/{document:slug}', [DocumentController::class, 'show'])->name('document.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
