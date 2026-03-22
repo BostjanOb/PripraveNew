@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\DocumentFile;
 use App\Services\Documents\RelatedDocumentsSearchService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -81,7 +82,7 @@ class DocumentController extends Controller
         return Storage::download($file->storage_path, $file->original_name);
     }
 
-    public function downloadZip(Document $document): StreamedResponse
+    public function downloadZip(Document $document): StreamedResponse|Response
     {
         abort_unless(auth()->check(), 403);
 
@@ -94,6 +95,10 @@ class DocumentController extends Controller
         $storagePath = $document->files->first()->storage_path;
 
         if (str_ends_with($storagePath, '.zip') && Storage::exists($storagePath)) {
+            if ($this->shouldUseXAccel()) {
+                return $this->xAccelResponse($storagePath, $zipName);
+            }
+
             return Storage::download($storagePath, $zipName);
         }
 
@@ -114,6 +119,21 @@ class DocumentController extends Controller
             unlink($tempPath);
         }, $zipName, [
             'Content-Type' => 'application/zip',
+        ]);
+    }
+
+    private function shouldUseXAccel(): bool
+    {
+        return app()->isProduction()
+            && str_contains(request()->server('SERVER_SOFTWARE', ''), 'nginx');
+    }
+
+    private function xAccelResponse(string $storagePath, string $filename): Response
+    {
+        return response('', 200, [
+            'X-Accel-Redirect' => '/internal-storage/'.$storagePath,
+            'Content-Type' => 'application/zip',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
